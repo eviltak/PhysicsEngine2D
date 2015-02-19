@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Physics2DTutorial;
+using PhysicsEngine2D;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.GamerServices;
 
 using XNAPrimitives2D;
 
-namespace Physics2DDemo
+namespace PhysicsEngine2DDemo
 {
     /// <summary>
     /// This is the main type for your game

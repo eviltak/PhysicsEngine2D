@@ -4,7 +4,7 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
-namespace Physics2DTutorial
+namespace PhysicsEngine2D
 {
     public class Scene
     {

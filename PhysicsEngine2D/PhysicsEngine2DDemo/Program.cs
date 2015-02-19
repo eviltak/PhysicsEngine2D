@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 #endregion
 
-namespace Physics2DDemo
+namespace PhysicsEngine2DDemo
 {
 #if WINDOWS || LINUX
     /// <summary>

@@ -8,7 +8,7 @@
     <ProjectGuid>{BBC83139-AED7-4688-AA0C-0DD6BCAE42C3}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Physics2DDemo</RootNamespace>
+    <RootNamespace>PhysicsEngine2DDemo</RootNamespace>
     <AssemblyName>Physics2DDemo</AssemblyName>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

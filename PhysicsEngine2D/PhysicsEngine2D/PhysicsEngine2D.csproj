@@ -7,8 +7,8 @@
     <ProjectGuid>{23FDDA63-3858-4D26-83EC-C82C942E2FD8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Physics2DTutorial</RootNamespace>
-    <AssemblyName>Physics2D Tutorial</AssemblyName>
+    <RootNamespace>PhysicsEngine2D</RootNamespace>
+    <AssemblyName>PhysicsEngine2D</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

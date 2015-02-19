@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using XNAPrimitives2D;
 
-namespace Physics2DTutorial
+namespace PhysicsEngine2D
 {
     public class Circle : Shape
     {
