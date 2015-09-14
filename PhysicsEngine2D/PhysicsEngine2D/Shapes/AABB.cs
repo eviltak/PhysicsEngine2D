@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Microsoft.Xna.Framework;
 using XNAPrimitives2D;
 
@@ -21,6 +16,13 @@ namespace PhysicsEngine2D
             type = ShapeType.AABB;
         }
 
+        public AABB(float width, float height)
+        {
+            var wh = new Vector2(width / 2, height / 2);
+            max = wh;
+            min = -wh;
+        }
+
         public override void Draw()
         {
             Vector2[] v = new Vector2[4];
@@ -31,6 +33,16 @@ namespace PhysicsEngine2D
             v[3] = new Vector2(min.X, max.Y);
 
             Primitives2D.DrawPolygon(body.position, v, Color.Black);
+        }
+
+        public override Shape Clone()
+        {
+            return new AABB(min, max);
+        }
+
+        public override Bounds GetBoundingBox(Vector2 position)
+        {
+            return new Bounds(position + min, position + max);
         }
     }
 }

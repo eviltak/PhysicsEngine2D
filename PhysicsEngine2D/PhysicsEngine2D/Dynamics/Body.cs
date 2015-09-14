@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 using Microsoft.Xna.Framework;
 
 namespace PhysicsEngine2D
@@ -12,28 +7,26 @@ namespace PhysicsEngine2D
     {
         public Shape shape;
 
+        public Bounds bounds;
+
         public Vector2 position;
         public Vector2 velocity;
 
-        public float mass;
+        public Vector2 force;
         public float inverseMass;
 
         public float restitution;
-
-        public float staticFriction;
-        public float dynamicFriction;
+        public float friction;
 
         public float gravityScale;
 
         public Body(Shape shape, Vector2 position, float mass = 1, float restitution = 0, 
-            float staticFriction = 0, float dynamicFriction = 0, float gravityScale = 1)
+            float friction = 0, float gravityScale = 1)
         {
             this.shape = shape;
             this.shape.body = this;
 
             this.position = position;
-
-            this.mass = mass;
 
             if (mass != 0)
                 inverseMass = 1 / mass;
@@ -42,8 +35,7 @@ namespace PhysicsEngine2D
 
             this.restitution = restitution;
 
-            this.staticFriction = staticFriction;
-            this.dynamicFriction = dynamicFriction;
+            this.friction = friction;
 
             this.gravityScale = gravityScale;
         }
@@ -53,18 +45,33 @@ namespace PhysicsEngine2D
             inverseMass = 0;
         }
 
-        public void Update(float dt)
+        public void IntegrateForces(float dt)
         {
             if (inverseMass == 0)
                 return;
 
-            velocity += Scene.gravity * dt * gravityScale;
+            velocity += dt * (Scene.gravity * gravityScale + inverseMass * force);
+            force = Vector2.Zero;
+
+        }
+
+        public void IntegrateVelocity(float dt)
+        {
+            if (inverseMass == 0)
+                return;
+            
             position += velocity * dt;
         }
 
         public void Draw()
         {
             shape.Draw();
+        }
+
+        public void Update()
+        {
+            //Update bounds for Broad phase
+            bounds = shape.GetBoundingBox(position);
         }
     }
 }
