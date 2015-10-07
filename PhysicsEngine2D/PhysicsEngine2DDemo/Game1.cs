@@ -16,7 +16,7 @@ namespace PhysicsEngine2DDemo
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        Scene scene;
+        PhysicsWorld physicsWorld;
 
         SpriteFont font;
 
@@ -34,14 +34,14 @@ namespace PhysicsEngine2DDemo
 
             graphics.PreferMultiSampling = true;
 
-            graphics.PreferredBackBufferWidth = 1600;
-            graphics.PreferredBackBufferHeight = 900;
+            graphics.PreferredBackBufferWidth = 800;
+            graphics.PreferredBackBufferHeight = 600;
 
             // graphics.ToggleFullScreen();
 
             width *= graphics.PreferredBackBufferWidth / 800f;
 
-            scene = new Scene();
+            physicsWorld = new PhysicsWorld();
         }
 
         // / <summary>
@@ -55,39 +55,46 @@ namespace PhysicsEngine2DDemo
             height = width / GraphicsDevice.Viewport.AspectRatio;
             Primitives2D.Initialize(GraphicsDevice, height);
 
-            AABB aabb;
+            Polygon aabb;
             Body b;
 
-            aabb = new AABB(width, 1);
-            b = new Body(aabb, new Vector2(0, -(height - 1) / 2), 0, 0.1f, 0.25f);
+            aabb = new Polygon(width/2, 0.5f);
+            b = new Body(aabb, new Vector2(0, -(height - 1) / 2), 0, 0.1f);
+            b.SetStatic();
 
-            scene.AddBody(b);
+            physicsWorld.AddBody(b);
 
-            Circle c = new Circle(1);
+            var c = new Circle(1.5f);
             b = new Body(c, Vector2.Zero, 0, 0.3f);
-            scene.AddBody(b);
-
-            aabb = new AABB(1, height - 1);
+            b.SetStatic();
+            physicsWorld.AddBody(b);
+            
+            aabb = new Polygon(0.5f, height/2 - 0.5f);
             b = new Body(aabb, new Vector2(-width / 2 + 0.5f, 0.5f), 0);
-            scene.AddBody(b);
+            b.SetStatic();
+            physicsWorld.AddBody(b);
 
             b = new Body(aabb.Clone(), new Vector2(width / 2 - 0.5f, 0.5f), 0);
-            scene.AddBody(b);
+            b.SetStatic();
+            physicsWorld.AddBody(b);
 
+            // Test scenes: Will soon be integrated into demo
+            /*
+            Shape s = new Polygon(.5f, .5f);
 
-            Shape s = new Circle(0.5f);
-            s = new AABB(1, 1);
-
+            System.Random r = new System.Random();
             //  Test for stacking, uncomment to test
-            /*for (float x = -width / 2 + 2; x <= width / 2 - 2; x += 1.5f)
-                for (float y = -height / 2 + 1.5f; y < height; y += 1.5f)
-                    scene.AddBody(new Body(s.Clone(), new Vector2(x, y), 1, 0.1f, 0.15f));*/
+            for (float x = -width / 2 + 1.5f; x <= width / 2 - 2; x += 1.1f)
+                for (float y = -height / 2 + 1.5f; y < -height / 5f + 1 * 1.01f; y += 1.01f)
+                    physicsWorld.AddBody(new Body(s.Clone(),
+                        new Vector2(x + MathHelper.Lerp(0f, -0f, (float)r.NextDouble()), y), 0, 0.1f));
 
             //  Testing pyramid (code taken directly from Box2D-Lite)
-            /*Vector2 x = new Vector2(-width / 2 -0.5f, -height + 3.5f);
+            /*
+            Vector2 x = new Vector2(-width / 2 + 3, -height/2 + 1.5f);
             Vector2 y;
 
-            const int n = 38;
+            int n =33;
 
             for (int i = 0; i < n; ++i)
             {
@@ -95,18 +102,19 @@ namespace PhysicsEngine2DDemo
 
                 for (int j = i; j < n; ++j)
                 {
-                    b = new Body(s.Clone(), y, 10, 0.15f, 0.2f);
+                    b = new Body(s.Clone(), y, 0, 0.15f);
                     scene.AddBody(b);
 
                     y += Vector2.UnitX * 1.125f;
                 }
 
                 // x += Vec2(0.5625f, 1.125f);
-                x += new Vector2(0.5625f, 2.0f);
-            }*/
-
+                x += new Vector2(0.5625f, 1.0f);
+            }
+            */
 
             lastMouseState = Mouse.GetState();
+            lastKeyState = Keyboard.GetState();
 
             base.Initialize();
 
@@ -135,6 +143,7 @@ namespace PhysicsEngine2DDemo
         }
 
         MouseState lastMouseState, currentMouseState;
+        KeyboardState lastKeyState, currentKeyState;
 
         // / <summary>
         // / Allows the game to run logic such as updating the world,
@@ -145,32 +154,44 @@ namespace PhysicsEngine2DDemo
         {
             if (!init) return;
 
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || 
+                Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+
+            lastKeyState = currentKeyState;
 
             lastMouseState = currentMouseState;
 
             //  Get the mouse state relevant for this frame
             currentMouseState = Mouse.GetState();
+            currentKeyState = Keyboard.GetState();
 
-            Vector2 mouse = new Vector2((float)currentMouseState.X / GraphicsDevice.Viewport.Width * width - width * 0.5f,
+            if (currentKeyState.IsKeyUp(Keys.B) && lastKeyState.IsKeyDown(Keys.B))
+                PhysicsWorld.bruteForce = !PhysicsWorld.bruteForce;
+
+            Vector2 mouse = new Vector2(
+                (float)currentMouseState.X / GraphicsDevice.Viewport.Width * width - width * 0.5f,
                 (1 - (float)currentMouseState.Y / GraphicsDevice.Viewport.Height) * height - height * 0.5f);
 
-            if (lastMouseState.LeftButton == ButtonState.Released && currentMouseState.LeftButton == ButtonState.Pressed) {
-                AABB aabb = new AABB(1, 1);
-                Body b = new Body(aabb, mouse, 1, 0.1f, 0.015f);
+            if (lastMouseState.LeftButton == ButtonState.Released 
+                && currentMouseState.LeftButton == ButtonState.Pressed) {
+                Polygon aabb = new Polygon(.5f, .5f);
+                System.Random r = new System.Random();
+                Body b = new Body(aabb, mouse, (float)r.NextDouble(), 0.15f);
 
-                scene.AddBody(b);
+                physicsWorld.AddBody(b);
             }
 
-            if (lastMouseState.RightButton == ButtonState.Released && currentMouseState.RightButton == ButtonState.Pressed) {
-                Circle aabb = new Circle(0.707f);
-                Body b = new Body(aabb, mouse, 1, 0.1f, 0.015f);
+            if (lastMouseState.RightButton == ButtonState.Released 
+                && currentMouseState.RightButton == ButtonState.Pressed) {
+                Circle aabb = new Circle(0.5f);
+                Body b = new Body(aabb, mouse, 1, 0.1f);
 
-                scene.AddBody(b);
+                physicsWorld.AddBody(b);
             }
 
-            scene.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+
+            physicsWorld.Update(1 / 60f);
 
             base.Update(gameTime);
         }
@@ -186,12 +207,18 @@ namespace PhysicsEngine2DDemo
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             spriteBatch.Begin();
+
             spriteBatch.DrawString(font, "FPS : " + (1 / dt).ToString(), new Vector2(10, 10), Color.White);
 
-            spriteBatch.DrawString(font, "No of bodies: " + scene.bodies.Count, new Vector2(10, 35), Color.White);
+            spriteBatch.DrawString(font, "No of bodies: " + physicsWorld.bodies.Count, 
+                new Vector2(10, 35), Color.White);
+
+            spriteBatch.DrawString(font, "(B)rute force collisions: " +
+                (PhysicsWorld.bruteForce ? "Yes" : "No"), new Vector2(10, 60), Color.White);
+
             spriteBatch.End();
 
-            scene.Draw();
+            physicsWorld.Draw();
 
             base.Draw(gameTime);
         }

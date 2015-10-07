@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Math = System.Math;
+using Microsoft.Xna.Framework;
 
 namespace PhysicsEngine2D
 {
@@ -6,6 +7,14 @@ namespace PhysicsEngine2D
     {
         public Vector2 min;
         public Vector2 max;
+
+        public float Volume
+        {
+            get
+            {
+                return Math.Abs(max.Y - min.Y) * Math.Abs(max.X - min.X);
+            }
+        }
 
         public Bounds(Vector2 min, Vector2 max)
         {
@@ -15,7 +24,17 @@ namespace PhysicsEngine2D
 
         public bool Overlaps(Bounds other)
         {
-            return Bounds.Overlaps(this, other);
+            return Overlaps(this, other);
+        }
+
+        public Bounds Union(Bounds other)
+        {
+            return Union(this, other);
+        }
+
+        public static Bounds Union(Bounds a, Bounds b)
+        {
+            return new Bounds(Vector2.Min(a.min, b.min), Vector2.Max(a.max, b.max));
         }
 
         public static bool Overlaps(Bounds a, Bounds b)
@@ -24,6 +43,11 @@ namespace PhysicsEngine2D
             if (a.max.Y < b.min.Y || a.min.Y > b.max.Y) return false;
 
             return true;
+        }
+
+        public bool Contains(Bounds bounds)
+        {
+            return Vector2.Min(min, bounds.min) == min && Vector2.Max(max, bounds.max) == max;
         }
     }
 }

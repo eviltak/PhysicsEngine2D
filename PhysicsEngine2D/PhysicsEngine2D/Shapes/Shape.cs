@@ -6,7 +6,7 @@ namespace PhysicsEngine2D
     {
         public enum ShapeType
         {
-            AABB, Circle,
+            Polygon, Circle,
             Count //Count is just so that the number of shapes can be referenced easily
         };
 
@@ -15,6 +15,9 @@ namespace PhysicsEngine2D
 
         public abstract void Draw();
         public abstract Shape Clone();
-        public abstract Bounds GetBoundingBox(Vector2 position);
+        public abstract Bounds GetBoundingBox();
+        public abstract void ComputeMass(float density);
+
+        public virtual void SetOrientation(float orientation) { }
     }
 }

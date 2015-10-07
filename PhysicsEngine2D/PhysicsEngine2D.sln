@@ -25,6 +25,7 @@ Global
 		{23FDDA63-3858-4D26-83EC-C82C942E2FD8}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{23FDDA63-3858-4D26-83EC-C82C942E2FD8}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{23FDDA63-3858-4D26-83EC-C82C942E2FD8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{23FDDA63-3858-4D26-83EC-C82C942E2FD8}.Debug|x86.Build.0 = Debug|Any CPU
 		{23FDDA63-3858-4D26-83EC-C82C942E2FD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23FDDA63-3858-4D26-83EC-C82C942E2FD8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{23FDDA63-3858-4D26-83EC-C82C942E2FD8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU

@@ -4,106 +4,182 @@ using Microsoft.Xna.Framework;
 
 namespace PhysicsEngine2D
 {
-    internal class Manifold : IEquatable<Manifold>
+    internal class Contact
     {
-        public Body A, B;
-        public float penetration;
-        public Vector2 normal;
-
-        //Accumulated impulse for less jitter
+        public Vector2 position;
         public float accumImpulse;
         public float accumFriction;
 
-        //Since only one contact is generated
-        public bool colliding;
-
         //Bias based on penetration of bodies
-        float bias;
+        public float penetration;
+        public float bias;
+
+        public float normalMass;
+        public float tangentMass;
+
+        public Contact(Vector2 position, float impulse = 0, float friction = 0, float penetration = 0)
+        {
+            this.position = position;
+            accumFriction = friction;
+            accumImpulse = impulse;
+            this.penetration = penetration;
+        }
+
+        public Contact Clone()
+        {
+            return new Contact(position, accumImpulse, accumFriction, penetration);
+        }
+    }
+
+    internal class Manifold : IEquatable<Manifold>
+    {
+        public Body A, B;
+        public Vector2 normal;
+
+        //We only need two contact points
+        public Contact[] contacts = new Contact[2];
+        public int contactCount;
 
         public Manifold(Body A, Body B)
         {
             this.A = A;
             this.B = B;
-            penetration = accumFriction = accumImpulse = bias = 0;
             normal = default(Vector2);
-            colliding = false;
+        }
+
+        public void Update(int numNewContacts, params Contact[] newContacts)
+        {
+            Contact[] mergedContacts = new Contact[2];
+
+            for(int i = 0; i < numNewContacts; i++)
+            {
+                Contact c = mergedContacts[i];
+                Contact cOld = contacts[i];
+                Contact cNew = newContacts[i];
+                mergedContacts[i] = cNew.Clone();
+
+                if (cOld != null)
+                {
+                    mergedContacts[i].accumFriction = cOld.accumFriction;
+                    mergedContacts[i].accumImpulse = cOld.accumImpulse;
+                }
+            }
+
+            for (int i = 0; i < numNewContacts; ++i)
+                contacts[i] = mergedContacts[i].Clone();
+
+            contactCount = numNewContacts;
         }
 
         public void Collide()
         {
             //Check whether colliding and fill data in us
-            colliding = Collision.CollisionCallbacks[(int)A.shape.type][(int)B.shape.type](this);
+            Collision.CollisionCallbacks[(int)A.shape.type][(int)B.shape.type](this);
         }
 
-        // Step before applying impulse for Warm Start (Temporal Coherence)
+        // Step before applying impulse for Accumulated impulse
         public void PreStep(float inv_dt)
         {
-            if (!colliding) return;
+            if (A.inverseMass + B.inverseMass == 0) return;
 
-            const float k_allowedPenetration = 0.05f;
-            float k_biasFactor = 0.3f;
+            const float k_allowedPenetration = 0.01f;
+            const float k_biasFactor = 0.2f;
 
-            Vector2 tangent = MathUtil.Cross(normal, 1);
+            for (int i = 0; i < contactCount; i++)
+            {
+                Contact c = contacts[i];
 
-            //Move bodies further if they are penetrating
-            bias = -k_biasFactor * inv_dt * MathHelper.Min(0.0f, -penetration + k_allowedPenetration);
+                if (c == null) continue;
 
-            //Warm Start! (Temporal Coherence)
-            Vector2 p = accumImpulse * normal + accumFriction * tangent;
+                Vector2 r1 = c.position - A.position;
+                Vector2 r2 = c.position - B.position;
 
-            A.velocity -= A.inverseMass * p;
-            B.velocity += B.inverseMass * p;
+                Vector2 tangent = MathUtil.Cross(normal, 1);
+
+                float rn1 = Vector2.Dot(r1, normal);
+                float rn2 = Vector2.Dot(r2, normal);
+                float InverseMassSum = A.inverseMass + B.inverseMass;
+
+                c.normalMass = InverseMassSum + A.inverseInertia * (Vector2.Dot(r1, r1) - rn1 * rn1) + 
+                    B.inverseInertia * (Vector2.Dot(r2, r2) - rn2 * rn2);
+                c.normalMass = 1 / c.normalMass;
+
+                float rt1 = Vector2.Dot(r1, tangent);
+                float rt2 = Vector2.Dot(r2, tangent);
+
+                c.tangentMass = InverseMassSum + A.inverseInertia * (Vector2.Dot(r1, r1) - rt1 * rt1) +
+                    B.inverseInertia * (Vector2.Dot(r2, r2) - rt2 * rt2);
+                c.tangentMass = 1 / c.tangentMass;
+
+                //Move bodies further if they are penetrating
+                c.bias = k_biasFactor * inv_dt * MathHelper.Max(0.0f, c.penetration - k_allowedPenetration);
+
+                //Accumulated impulses
+                Vector2 p = c.accumImpulse * normal + c.accumFriction * tangent;
+
+                A.ApplyImpulse(-p, r1);
+                B.ApplyImpulse(p, r2);
+            }
+
         }
 
         public void ApplyImpulse()
         {
-            if (!colliding) return;
             if (A.inverseMass + B.inverseMass == 0) return;
 
-            Vector2 rv = B.velocity - A.velocity;
+            for (int i = 0; i < contactCount; i++) {
+                Contact c = contacts[i];
+                if (c == null) continue;
+                Vector2 ra = c.position - A.position;
+                Vector2 rb = c.position - B.position;
 
-            //Calculate relative velocity in terms of the normal direction
-            float velAlongNormal = Vector2.Dot(rv, normal);
+                Vector2 rv = B.velocity + MathUtil.Cross(B.angularVelocity, rb) -
+                    A.velocity - MathUtil.Cross(A.angularVelocity, ra);
 
-            //Calculate restitution (currently removed)
-            float e = 0;//(A.restitution + B.restitution) / 2;
+                //Calculate relative velocity in terms of the normal direction
+                float velAlongNormal = Vector2.Dot(rv, normal); 
 
-            //Calculate impulse scalar
-            float j = -(1 + e) * velAlongNormal + bias;
-            j /= A.inverseMass + B.inverseMass;
+                //Calculate impulse scalar
+                float j = -velAlongNormal + c.bias;
+                j *= c.normalMass;
 
-            //Find impulse to apply after clamping since we applied the accumulated impulse in the warm start
-            float pn0 = accumImpulse;
-            accumImpulse = MathHelper.Max(pn0 + j, 0);
-            j = accumImpulse - pn0;
+                //Find impulse to apply after clamping since we applied the accumulated impulse in the warm start
+                float pn0 = c.accumImpulse;
+                c.accumImpulse = MathHelper.Max(pn0 + j, 0);
+                j = c.accumImpulse - pn0;
 
-            A.velocity -= A.inverseMass * j * normal;
-            B.velocity += B.inverseMass * j * normal;
+                Vector2 pn = j * normal;
+                A.ApplyImpulse(-pn, ra);
+                B.ApplyImpulse(pn, rb);
 
-            //Friction start
+                //Friction start
 
-            //Get tangent perpendicular to normal by crossing
-            Vector2 tangent = MathUtil.Cross(normal, 1);
+                //Get tangent perpendicular to normal by crossing
+                rv = B.velocity + MathUtil.Cross(B.angularVelocity, rb) -
+                    A.velocity - MathUtil.Cross(A.angularVelocity, ra);
 
-            if (tangent.LengthSquared() > 0)
-                tangent.Normalize();
+                Vector2 tangent = MathUtil.Cross(normal, 1);
 
-            //Solve for magnitude to apply along the friction vector
-            float jt = -Vector2.Dot(rv, tangent);
-            jt /= A.inverseMass + B.inverseMass;
+                if (tangent.LengthSquared() > 0)
+                    tangent.Normalize();
 
-            //Use to approximate mu given friction coefficients of each body
-            float mu = (A.friction + B.friction) / 2;
+                //Solve for magnitude to apply along the friction vector
+                float jt = -Vector2.Dot(rv, tangent) * c.tangentMass;
 
-            //Accumulated friction impulse clamp and applicaton
-            float maxPt = accumImpulse * mu;
-            float pt0 = accumFriction;
-            accumFriction = MathHelper.Clamp(pt0 + jt, -maxPt, maxPt);
-            jt = accumFriction - pt0;
+                //Use to approximate mu given friction coefficients of each body
+                float mu = (A.friction + B.friction) / 2;
 
-            // Apply
-            A.velocity -= A.inverseMass * jt * tangent;
-            B.velocity += B.inverseMass * jt * tangent;
+                //Accumulated friction impulse clamp and applicaton
+                float maxPt = c.accumImpulse * mu;
+                float pt0 = c.accumFriction;
+                c.accumFriction = MathHelper.Clamp(pt0 + jt, -maxPt, maxPt);
+                jt = c.accumFriction - pt0;
+
+                Vector2 pt = jt * tangent;
+
+                A.ApplyImpulse(-pt, ra);
+                B.ApplyImpulse(pt, rb);
+            }
         }
 
         //Required for BroadPhase

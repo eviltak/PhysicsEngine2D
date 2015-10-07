@@ -47,36 +47,39 @@ namespace PhysicsEngine2D
         {
             for (int j = 1; j < axis.Count; j++)
             {
-                AxisPoint keyPoint = axis[j];
-                float key = keyPoint.Value;
+                AxisPoint currentPoint = axis[j];
+                float current = currentPoint.Value;
 
                 int i = j - 1;
-                
-                while (i >= 0 && axis[i].Value > key)
+
+                while (i >= 0 && axis[i].Value > current)
                 {
-                    AxisPoint swapper = axis[i];
+                    AxisPoint greater = axis[i];
 
                     //Make sure we are comparing minimum and maximum points
-                    if (keyPoint.isMin && !swapper.isMin)
+                    if (currentPoint.isMin && !greater.isMin)
                     {
                         //Check bounds and add if possible collision
-                        if (CheckBounds(swapper.body, keyPoint.body))
+                        if (CheckBounds(greater.body, currentPoint.body))
                         {
-                            var possible = new Manifold(swapper.body, keyPoint.body);
-                            if (!overlaps.Contains(possible))
-                                overlaps.Add(possible);
+                            var possible = new Manifold(greater.body, currentPoint.body);
+
+                            //If we already have reported these two objects colliding,
+                            //keep them in memory so that impulses can be balanced
+                            //if (!overlaps.Contains(possible))
+                            overlaps.Add(possible);
                         }
                     }
-                    
+
                     //If objects have separated, remove from list
-                    if (!keyPoint.isMin && swapper.isMin)
-                        overlaps.Remove(new Manifold(swapper.body, keyPoint.body));
+                    if (!currentPoint.isMin && greater.isMin)
+                        overlaps.Remove(new Manifold(greater.body, currentPoint.body));
 
                     //Sort
-                    axis[i + 1] = swapper;
-                    i = i - 1;
+                    axis[i + 1] = greater;
+                    --i;
                 }
-                axis[i + 1] = keyPoint;
+                axis[i + 1] = currentPoint;
             }
         }
 
@@ -103,7 +106,7 @@ namespace PhysicsEngine2D
         {
             List<AxisPoint> points = new List<AxisPoint>();
 
-            foreach(Body b in bodies)
+            foreach (Body b in bodies)
             {
                 points.Add(new AxisPoint(b, true, axis));
                 points.Add(new AxisPoint(b, false, axis));

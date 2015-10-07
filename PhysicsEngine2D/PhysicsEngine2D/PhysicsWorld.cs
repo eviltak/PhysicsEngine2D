@@ -5,9 +5,11 @@ using Microsoft.Xna.Framework;
 
 namespace PhysicsEngine2D
 {
-    public class Scene
+    public class PhysicsWorld
     {
         public static Vector2 gravity = new Vector2(0, -9.8f);
+
+        public static bool bruteForce = false;
 
         public List<Body> bodies = new List<Body>();
 
@@ -15,9 +17,17 @@ namespace PhysicsEngine2D
 
         private CollisionSystemSAP collisionSystem;
 
-        int maxIterations = 5;
+        public int manifoldCount
+        {
+            get
+            {
+                return manifolds.Count;
+            }
+        }
 
-        public Scene()
+        int maxIterations = 10;
+
+        public PhysicsWorld()
         {
             collisionSystem = new CollisionSystemSAP(manifolds);
         }
@@ -37,18 +47,24 @@ namespace PhysicsEngine2D
             foreach (Body b in bodies)
                 b.Update();
 
-
-            //Obsolete Brute Force Collisions
-            /*for (int i = 0; i < bodies.Count - 1; i++) {
-                for (int j = i + 1; j < bodies.Count; j++) {
-                    var key = i + ", " + j;
-                    if (!manifolds.ContainsKey(key))
-                    manifolds.Add(key, new Manifold(bodies[i], bodies[j]));
+            if (bruteForce)
+            {
+                //Obsolete Brute Force Collisions
+                for (int i = 0; i < bodies.Count - 1; i++)
+                {
+                    for (int j = i + 1; j < bodies.Count; j++)
+                    {
+                        var key = new Manifold(bodies[i], bodies[j]);
+                        if (!manifolds.Contains(key))
+                            manifolds.Add(key);
+                    }
                 }
-            }*/
-
-            //Broad phase
-            collisionSystem.BroadPhase(bodies);
+            }
+            else
+            {
+                //Broad phase
+                collisionSystem.BroadPhase(bodies);
+            }
 
             //Narrow phase
             foreach (var m in manifolds)
@@ -68,6 +84,8 @@ namespace PhysicsEngine2D
             //Integrate positions
             foreach (Body b in bodies)
                 b.IntegrateVelocity(dt);
+
+            //manifolds.Clear();
         }
 
         public void Draw()

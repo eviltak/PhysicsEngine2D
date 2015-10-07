@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+
+using Microsoft.Xna.Framework;
 
 namespace PhysicsEngine2D
 {
@@ -19,6 +21,21 @@ namespace PhysicsEngine2D
         public static Vector2 Cross(float s, Vector2 a)
         {
             return new Vector2(-s * a.Y, s * a.X);
+        }
+
+        public static bool BiasGreaterThan(float a, float b)
+        {
+            const float BiasRelative = 0.95f;
+            const float BiasAbsolute = 0.01f;
+            return a >= b * BiasRelative + a * BiasAbsolute;
+        }
+
+        public static Vector2 Rotate(Vector2 v, float radians)
+        {
+            float cos = (float)Math.Cos(radians);
+            float sin = (float)Math.Sin(radians);
+
+            return new Vector2(v.X * cos - v.Y * sin, v.X * sin + v.Y * cos);
         }
     }
 }
