@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 
 namespace PhysicsEngine2D
 {
-    static class MathUtil
+    public static class MathUtil
     {
         //Crossing two vectors which results in a scalar which means (scalar * imaginary z-axis)
         public static float Cross(Vector2 a, Vector2 b)

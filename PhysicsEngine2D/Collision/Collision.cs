@@ -1,23 +1,21 @@
-﻿using System;
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 
 namespace PhysicsEngine2D
 {
-    static class Collision
+    internal static class Collision
     {
         //2D jump table for easy narrow phase function call
-        internal delegate void CollisionCheck( Manifold m);
+        internal delegate void CollisionCheck(Manifold m, Body a, Body b);
 
-        internal static CollisionCheck[][] CollisionCallbacks = new CollisionCheck[][] {
+        internal static CollisionCheck[][] collisionCallbacks = {
                 new CollisionCheck[] { PolygonToPolygon, PolygonToCircle },
                 new CollisionCheck[] { CircleToPolygon, CircleToCircle }
         };
 
-        public static void CircleToCircle( Manifold m)
+        public static void CircleToCircle(Manifold m, Body a, Body b)
         {
-            Circle shapeA = m.A.shape as Circle;
-            Circle shapeB = m.B.shape as Circle;
+            Circle shapeA = a.shape as Circle;
+            Circle shapeB = a.shape as Circle;
 
             m.contactCount = 0;
 
@@ -29,18 +27,19 @@ namespace PhysicsEngine2D
                 return;
 
             float d = n.Length();
-            
+
             Contact contact;
 
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
             if (d != 0)
             {
-                contact = new Contact(m.normal * shapeA.radius + m.A.position);
+                contact = new Contact(m.normal * shapeA.radius + a.position);
                 contact.penetration = r - d;
                 m.normal = n / d;
             }
             else
             {
-                contact = new Contact(m.A.position);
+                contact = new Contact(a.position);
                 // Circles are concentric, take a consistent value
                 contact.penetration = shapeA.radius;
                 m.normal = Vector2.UnitY;
@@ -48,11 +47,11 @@ namespace PhysicsEngine2D
 
             m.Update(1, contact);
         }
-        
-        public static void PolygonToPolygon( Manifold m)
+
+        public static void PolygonToPolygon(Manifold m, Body a, Body b)
         {
-            Polygon shapeA = m.A.shape as Polygon;
-            Polygon shapeB = m.B.shape as Polygon;
+            Polygon shapeA = a.shape as Polygon;
+            Polygon shapeB = b.shape as Polygon;
 
             m.contactCount = 0;
 
@@ -72,10 +71,9 @@ namespace PhysicsEngine2D
             //Make sure we always point from A to B for consistent results
             bool flip;
 
-
             Polygon refPoly, incPoly;
 
-            if(MathUtil.BiasGreaterThan(penetrationA, penetrationB))
+            if (MathUtil.BiasGreaterThan(penetrationA, penetrationB))
             {
                 refPoly = shapeA;
                 incPoly = shapeB;
@@ -95,7 +93,7 @@ namespace PhysicsEngine2D
 
             //Set up vertices
             Vector2 v1 = refPoly.vertices[referenceIndex];
-            Vector2 v2 = refPoly.vertices[(referenceIndex + 1) % refPoly.vertexCount];
+            Vector2 v2 = refPoly.vertices[(referenceIndex + 1) % refPoly.VertexCount];
 
             //Transform to world space
             v1 = refPoly.u * v1 + refPoly.body.position;
@@ -105,14 +103,14 @@ namespace PhysicsEngine2D
             sidePlaneNormal.Normalize();
 
             Vector2 refFaceNormal = new Vector2(sidePlaneNormal.Y, -sidePlaneNormal.X);
-            
+
             float refC = Vector2.Dot(refFaceNormal, v1);
             float negSide = -Vector2.Dot(sidePlaneNormal, v1);
             float posSide = Vector2.Dot(sidePlaneNormal, v2);
 
             // Due to floating point error, possible to not have required points
             if (Clip(-sidePlaneNormal, negSide, ref incidentFace) < 2)
-                return; 
+                return;
 
             if (Clip(sidePlaneNormal, posSide, ref incidentFace) < 2)
                 return;
@@ -138,34 +136,34 @@ namespace PhysicsEngine2D
             m.Update(cp, contacts);
         }
 
-        private static float FindLeastPenetrationAxis(Polygon A, Polygon B, out int face)
+        private static float FindLeastPenetrationAxis(Polygon a, Polygon b, out int face)
         {
             float bestDistance = float.MinValue;
             face = 0;
 
-            for (int i = 0; i < A.vertexCount; i++)
+            for (int i = 0; i < a.VertexCount; i++)
             {
                 //Get world space normal of A's face
-                Vector2 n = A.normals[i];
-                Vector2 nW = A.u * n;
+                Vector2 n = a.normals[i];
+                Vector2 nW = a.u * n;
 
-                //Retrieve normal in B's spac
-                n = B.uT * nW;
+                //Retrieve normal in B's space
+                n = b.uT * nW;
 
                 //Get furthest point in negative normal direction
-                Vector2 s = B.GetSupportPoint(-n);
+                Vector2 s = b.GetSupportPoint(-n);
 
                 //Get vertex on A's face, transform to B's space
-                Vector2 v = A.vertices[i];
-                v = A.u * v + A.body.position;
-                v -= B.body.position;
-                v = B.uT * v;
+                Vector2 v = a.vertices[i];
+                v = a.u * v + a.body.position;
+                v -= b.body.position;
+                v = b.uT * v;
 
                 //Find penetration distance
                 float d = Vector2.Dot(s - v, n);
 
                 //Store greatest distance
-                if(d > bestDistance)
+                if (d > bestDistance)
                 {
                     bestDistance = d;
                     face = i;
@@ -175,7 +173,7 @@ namespace PhysicsEngine2D
             return bestDistance;
         }
 
-        private static void GetIncidentFace(out Vector2[] face, 
+        private static void GetIncidentFace(out Vector2[] face,
             Polygon refP, Polygon incP, int referenceIndex)
         {
             face = new Vector2[2];
@@ -190,7 +188,7 @@ namespace PhysicsEngine2D
             int incidentFace = -1;
             float minDot = float.MaxValue;
 
-            for(int i = 0; i < incP.vertexCount; i++)
+            for (int i = 0; i < incP.VertexCount; i++)
             {
                 float dot = Vector2.Dot(n, incP.normals[i]);
                 if (dot < minDot)
@@ -202,14 +200,14 @@ namespace PhysicsEngine2D
 
             //Get world space face
             face[0] = incP.u * incP.vertices[incidentFace] + incP.body.position;
-            face[1] = incP.u * incP.vertices[(incidentFace + 1) % incP.vertexCount]
+            face[1] = incP.u * incP.vertices[(incidentFace + 1) % incP.VertexCount]
                 + incP.body.position;
         }
 
         private static int Clip(Vector2 n, float c, ref Vector2[] face)
         {
             int clippedPoints = 0;
-            Vector2[] res = new Vector2[] { face[0], face[1] };
+            Vector2[] res = { face[0], face[1] };
 
             //Get distance to line (ax + by = -c, n = (a, b))
             float d1 = Vector2.Dot(n, face[0]) - c;
@@ -222,7 +220,7 @@ namespace PhysicsEngine2D
 
             //Check whether one of the points is ahead and other behind
             //(-) * (+) = (-)
-            if ((d1 * d2) < 0)
+            if (d1 * d2 < 0)
             {
                 //Intersect
                 float t = d1 / (d1 - d2);
@@ -236,22 +234,22 @@ namespace PhysicsEngine2D
             return clippedPoints;
         }
 
-        public static void CircleToPolygon(Manifold m)
+        public static void CircleToPolygon(Manifold m, Body a, Body b)
         {
-            Circle shapeA = m.A.shape as Circle;
-            Polygon shapeB = m.B.shape as Polygon;
+            Circle shapeA = a.shape as Circle;
+            Polygon shapeB = b.shape as Polygon;
 
             m.contactCount = 0;
 
             // Transform circle center to Polygon model space
-            Vector2 center = m.A.position;
-            center = shapeB.u.Transpose() * (center - m.B.position);
+            Vector2 center = a.position;
+            center = shapeB.u.Transpose() * (center - b.position);
 
             // Find edge with minimum penetration
             // Exact concept as using support points in Polygon vs Polygon
             float separation = float.MinValue;
             int faceNormal = 0;
-            for (int i = 0; i < shapeB.vertexCount; ++i)
+            for (int i = 0; i < shapeB.VertexCount; ++i)
             {
                 float s = Vector2.Dot(shapeB.normals[i], center - shapeB.vertices[i]);
 
@@ -267,7 +265,7 @@ namespace PhysicsEngine2D
 
             // Grab face's vertices
             Vector2 v1 = shapeB.vertices[faceNormal];
-            int i2 = faceNormal + 1 < shapeB.vertexCount ? faceNormal + 1 : 0;
+            int i2 = faceNormal + 1 < shapeB.VertexCount ? faceNormal + 1 : 0;
             Vector2 v2 = shapeB.vertices[i2];
 
             Contact c = new Contact(Vector2.Zero);
@@ -276,7 +274,7 @@ namespace PhysicsEngine2D
             if (separation < float.Epsilon)
             {
                 m.normal = -(shapeB.u * shapeB.normals[faceNormal]);
-                c.position = m.normal * shapeA.radius + m.A.position;
+                c.position = m.normal * shapeA.radius + a.position;
                 c.penetration = shapeA.radius;
                 m.Update(1, c);
                 return;
@@ -292,13 +290,13 @@ namespace PhysicsEngine2D
             {
                 if (Vector2.DistanceSquared(center, v1) > shapeA.radius * shapeA.radius)
                     return;
-                
+
                 Vector2 n = v1 - center;
                 n = shapeB.u * n;
                 n.Normalize();
                 m.normal = n;
 
-                v1 = shapeB.u * v1 + m.B.position;
+                v1 = shapeB.u * v1 + b.position;
                 c.position = v1;
                 m.Update(1, c);
             }
@@ -310,7 +308,7 @@ namespace PhysicsEngine2D
                     return;
 
                 Vector2 n = v2 - center;
-                v2 = shapeB.u * v2 + m.B.position;
+                v2 = shapeB.u * v2 + b.position;
                 c.position = v2;
                 m.Update(1, c);
 
@@ -328,19 +326,15 @@ namespace PhysicsEngine2D
 
                 n = shapeB.u * n;
                 m.normal = -n;
-                c.position = m.normal * shapeA.radius + m.A.position;
+                c.position = m.normal * shapeA.radius + a.position;
                 m.Update(1, c);
             }
         }
 
-        public static void PolygonToCircle( Manifold m)
+        public static void PolygonToCircle(Manifold m, Body a, Body b)
         {
             //Just switching the input so that we can pass it to the function above
-            var temp = m.B;
-            m.B = m.A;
-            m.A = temp;
-
-            CircleToPolygon( m);
+            CircleToPolygon(m, b, a);
 
             //Make sure that normal always points from A to B
             m.normal = -m.normal;

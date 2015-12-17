@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using XNAPrimitives2D;
 
 namespace PhysicsEngine2D
 {
@@ -7,17 +6,10 @@ namespace PhysicsEngine2D
     {
         public float radius;
 
-        public Circle(float radius) : base()
+        public Circle(float radius)
         {
             this.radius = radius;
             type = ShapeType.Circle;
-        }
-
-        public override void Draw()
-        {
-            Primitives2D.DrawCircle(body.position, radius, Color.Black);
-            Vector2 r = MathUtil.Rotate(-Vector2.UnitY * radius, body.orientation);
-            Primitives2D.DrawLine(body.position, body.position + r, Color.Black);
         }
 
         public override Shape Clone()

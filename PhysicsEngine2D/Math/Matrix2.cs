@@ -5,18 +5,18 @@ namespace PhysicsEngine2D
 {
     public struct Matrix2
     {
-        public float M00, M01;
-        public float M10, M11;
+        public float m00, m01;
+        public float m10, m11;
 
         public Matrix2(float m00, float m01, float m10, float m11)
         {
-            M00 = m00; M01 = m01;
-            M10 = m10; M11 = m11;
+            this.m00 = m00; this.m01 = m01;
+            this.m10 = m10; this.m11 = m11;
         }
 
         public Matrix2(float radians)
         {
-            M00 = M10 = M11 = M01 = 0;
+            m00 = m10 = m11 = m01 = 0;
             SetRotation(radians);
         }
 
@@ -26,15 +26,15 @@ namespace PhysicsEngine2D
             float cos = (float)Math.Cos(radians);
             float sin = (float)Math.Sin(radians);
 
-            M00 = cos; M01 = -sin;
-            M10 = sin; M11 = cos;
+            m00 = cos; m01 = -sin;
+            m10 = sin; m11 = cos;
         }
 
         //Returns the Transpose of the matrix. Transpose of matrix is also world to object space matrix.
         public Matrix2 Transpose()
         {
-            return new Matrix2(M00, M10,
-                               M01, M11);
+            return new Matrix2(m00, m10,
+                               m01, m11);
         }
 
         //Operators
@@ -42,15 +42,15 @@ namespace PhysicsEngine2D
         //Matrix * Vector
         public static Vector2 operator *(Matrix2 mat, Vector2 vec)
         {
-            return new Vector2(mat.M00 * vec.X + mat.M01 * vec.Y, 
-                               mat.M10 * vec.X + mat.M11 * vec.Y);
+            return new Vector2(mat.m00 * vec.X + mat.m01 * vec.Y, 
+                               mat.m10 * vec.X + mat.m11 * vec.Y);
         }
 
         //Matrix * Matrix
-        public static Matrix2 operator *(Matrix2 A, Matrix2 B)
+        public static Matrix2 operator *(Matrix2 a, Matrix2 b)
         {
-            return new Matrix2(A.M00 * B.M00 + A.M01 * B.M10, A.M00 * B.M01 + A.M01 * B.M11, 
-                               A.M10 * B.M00 + A.M11 * B.M10, A.M10 * B.M01 + A.M11 * B.M11);
+            return new Matrix2(a.m00 * b.m00 + a.m01 * b.m10, a.m00 * b.m01 + a.m01 * b.m11, 
+                               a.m10 * b.m00 + a.m11 * b.m10, a.m10 * b.m01 + a.m11 * b.m11);
         }
     }
 }

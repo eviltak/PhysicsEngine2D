@@ -74,11 +74,6 @@ namespace PhysicsEngine2D
             shape.SetOrientation(orientation);
         }
 
-        public void Draw()
-        {
-            shape.Draw();
-        }
-
         public void Update()
         {
             //Update bounds for Broad phase

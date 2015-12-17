@@ -1,6 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-
-namespace PhysicsEngine2D
+﻿namespace PhysicsEngine2D
 {
     public abstract class Shape
     {
@@ -12,8 +10,7 @@ namespace PhysicsEngine2D
 
         public Body body;
         public ShapeType type;
-
-        public abstract void Draw();
+        
         public abstract Shape Clone();
         public abstract Bounds GetBoundingBox();
         public abstract void ComputeMass(float density);

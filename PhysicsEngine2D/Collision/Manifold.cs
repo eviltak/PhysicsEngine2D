@@ -33,17 +33,18 @@ namespace PhysicsEngine2D
 
     internal class Manifold : IEquatable<Manifold>
     {
-        public Body A, B;
+        public readonly Body bodyA;
+        public readonly Body bodyB;
         public Vector2 normal;
 
         //We only need two contact points
         public Contact[] contacts = new Contact[2];
         public int contactCount;
 
-        public Manifold(Body A, Body B)
+        public Manifold(Body bodyA, Body bodyB)
         {
-            this.A = A;
-            this.B = B;
+            this.bodyA = bodyA;
+            this.bodyB = bodyB;
             normal = default(Vector2);
         }
 
@@ -53,7 +54,6 @@ namespace PhysicsEngine2D
 
             for(int i = 0; i < numNewContacts; i++)
             {
-                Contact c = mergedContacts[i];
                 Contact cOld = contacts[i];
                 Contact cNew = newContacts[i];
                 mergedContacts[i] = cNew.Clone();
@@ -74,16 +74,16 @@ namespace PhysicsEngine2D
         public void Collide()
         {
             //Check whether colliding and fill data in us
-            Collision.CollisionCallbacks[(int)A.shape.type][(int)B.shape.type](this);
+            Collision.collisionCallbacks[(int)bodyA.shape.type][(int)bodyB.shape.type](this, bodyA, bodyB);
         }
 
         // Step before applying impulse for Accumulated impulse
-        public void PreStep(float inv_dt)
+        public void PreStep(float invDt)
         {
-            if (A.inverseMass + B.inverseMass == 0) return;
+            if (bodyA.inverseMass + bodyB.inverseMass == 0) return;
 
-            const float k_allowedPenetration = 0.01f;
-            const float k_biasFactor = 0.2f;
+            const float KAllowedPenetration = 0.01f;
+            const float KBiasFactor = 0.2f;
 
             for (int i = 0; i < contactCount; i++)
             {
@@ -91,50 +91,50 @@ namespace PhysicsEngine2D
 
                 if (c == null) continue;
 
-                Vector2 r1 = c.position - A.position;
-                Vector2 r2 = c.position - B.position;
+                Vector2 r1 = c.position - bodyA.position;
+                Vector2 r2 = c.position - bodyB.position;
 
                 Vector2 tangent = MathUtil.Cross(normal, 1);
 
                 float rn1 = Vector2.Dot(r1, normal);
                 float rn2 = Vector2.Dot(r2, normal);
-                float InverseMassSum = A.inverseMass + B.inverseMass;
+                float inverseMassSum = bodyA.inverseMass + bodyB.inverseMass;
 
-                c.normalMass = InverseMassSum + A.inverseInertia * (Vector2.Dot(r1, r1) - rn1 * rn1) + 
-                    B.inverseInertia * (Vector2.Dot(r2, r2) - rn2 * rn2);
+                c.normalMass = inverseMassSum + bodyA.inverseInertia * (Vector2.Dot(r1, r1) - rn1 * rn1) + 
+                    bodyB.inverseInertia * (Vector2.Dot(r2, r2) - rn2 * rn2);
                 c.normalMass = 1 / c.normalMass;
 
                 float rt1 = Vector2.Dot(r1, tangent);
                 float rt2 = Vector2.Dot(r2, tangent);
 
-                c.tangentMass = InverseMassSum + A.inverseInertia * (Vector2.Dot(r1, r1) - rt1 * rt1) +
-                    B.inverseInertia * (Vector2.Dot(r2, r2) - rt2 * rt2);
+                c.tangentMass = inverseMassSum + bodyA.inverseInertia * (Vector2.Dot(r1, r1) - rt1 * rt1) +
+                    bodyB.inverseInertia * (Vector2.Dot(r2, r2) - rt2 * rt2);
                 c.tangentMass = 1 / c.tangentMass;
 
                 //Move bodies further if they are penetrating
-                c.bias = k_biasFactor * inv_dt * MathHelper.Max(0.0f, c.penetration - k_allowedPenetration);
+                c.bias = KBiasFactor * invDt * MathHelper.Max(0.0f, c.penetration - KAllowedPenetration);
 
                 //Accumulated impulses
                 Vector2 p = c.accumImpulse * normal + c.accumFriction * tangent;
 
-                A.ApplyImpulse(-p, r1);
-                B.ApplyImpulse(p, r2);
+                bodyA.ApplyImpulse(-p, r1);
+                bodyB.ApplyImpulse(p, r2);
             }
 
         }
 
         public void ApplyImpulse()
         {
-            if (A.inverseMass + B.inverseMass == 0) return;
+            if (bodyA.inverseMass + bodyB.inverseMass == 0) return;
 
             for (int i = 0; i < contactCount; i++) {
                 Contact c = contacts[i];
                 if (c == null) continue;
-                Vector2 ra = c.position - A.position;
-                Vector2 rb = c.position - B.position;
+                Vector2 ra = c.position - bodyA.position;
+                Vector2 rb = c.position - bodyB.position;
 
-                Vector2 rv = B.velocity + MathUtil.Cross(B.angularVelocity, rb) -
-                    A.velocity - MathUtil.Cross(A.angularVelocity, ra);
+                Vector2 rv = bodyB.velocity + MathUtil.Cross(bodyB.angularVelocity, rb) -
+                    bodyA.velocity - MathUtil.Cross(bodyA.angularVelocity, ra);
 
                 //Calculate relative velocity in terms of the normal direction
                 float velAlongNormal = Vector2.Dot(rv, normal); 
@@ -149,14 +149,14 @@ namespace PhysicsEngine2D
                 j = c.accumImpulse - pn0;
 
                 Vector2 pn = j * normal;
-                A.ApplyImpulse(-pn, ra);
-                B.ApplyImpulse(pn, rb);
+                bodyA.ApplyImpulse(-pn, ra);
+                bodyB.ApplyImpulse(pn, rb);
 
                 //Friction start
 
                 //Get tangent perpendicular to normal by crossing
-                rv = B.velocity + MathUtil.Cross(B.angularVelocity, rb) -
-                    A.velocity - MathUtil.Cross(A.angularVelocity, ra);
+                rv = bodyB.velocity + MathUtil.Cross(bodyB.angularVelocity, rb) -
+                    bodyA.velocity - MathUtil.Cross(bodyA.angularVelocity, ra);
 
                 Vector2 tangent = MathUtil.Cross(normal, 1);
 
@@ -167,7 +167,7 @@ namespace PhysicsEngine2D
                 float jt = -Vector2.Dot(rv, tangent) * c.tangentMass;
 
                 //Use to approximate mu given friction coefficients of each body
-                float mu = (A.friction + B.friction) / 2;
+                float mu = (bodyA.friction + bodyB.friction) / 2;
 
                 //Accumulated friction impulse clamp and applicaton
                 float maxPt = c.accumImpulse * mu;
@@ -177,21 +177,21 @@ namespace PhysicsEngine2D
 
                 Vector2 pt = jt * tangent;
 
-                A.ApplyImpulse(-pt, ra);
-                B.ApplyImpulse(pt, rb);
+                bodyA.ApplyImpulse(-pt, ra);
+                bodyB.ApplyImpulse(pt, rb);
             }
         }
 
-        //Required for BroadPhase
+        //Required for Broad Phase
         public bool Equals(Manifold other)
         {
-            return (other.A.Equals(A) && other.B.Equals(B) || other.A.Equals(B) && other.B.Equals(A));
+            return other.bodyA.Equals(bodyA) && other.bodyB.Equals(bodyB) || other.bodyA.Equals(bodyB) && other.bodyB.Equals(bodyA);
         }
 
-        //Required for BroadPhase
+        //Required for Broad Phase
         public override int GetHashCode()
         {
-            return A.GetHashCode() + B.GetHashCode();
+            return bodyA.GetHashCode() + bodyB.GetHashCode();
         }
     }
 }

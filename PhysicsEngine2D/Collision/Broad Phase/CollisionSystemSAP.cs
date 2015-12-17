@@ -1,17 +1,16 @@
 ﻿using System.Collections.Generic;
-using Microsoft.Xna.Framework;
 
 namespace PhysicsEngine2D
 {
     //Broad Phasing code using Sweep and Prune (SAP)
     //TODO: Add grid based SAP
-    class CollisionSystemSAP
+    internal class CollisionSystemSap
     {
         private class AxisPoint
         {
             public Body body;
             public bool isMin;
-            public int axis;
+            private int axis;
 
             public AxisPoint(Body body, bool isMin, int axis)
             {
@@ -26,21 +25,17 @@ namespace PhysicsEngine2D
                 {
                     if (isMin)
                     {
-                        if (axis == 0) return body.bounds.min.X;
-                        else return body.bounds.min.Y;
+                        return axis == 0 ? body.bounds.min.X : body.bounds.min.Y;
                     }
-                    else
-                    {
-                        if (axis == 0) return body.bounds.max.X;
-                        else return body.bounds.max.Y;
-                    }
+
+                    return axis == 0 ? body.bounds.max.X : body.bounds.max.Y;
                 }
             }
         }
 
 
         //Overlapping bodies
-        private HashSet<Manifold> overlaps = new HashSet<Manifold>();
+        private HashSet<Manifold> overlaps;
 
         //Coherent method with Insertion Sort
         private void ProcessAxis(List<AxisPoint> axis)
@@ -62,7 +57,7 @@ namespace PhysicsEngine2D
                         //Check bounds and add if possible collision
                         if (CheckBounds(greater.body, currentPoint.body))
                         {
-                            var possible = new Manifold(greater.body, currentPoint.body);
+                            Manifold possible = new Manifold(greater.body, currentPoint.body);
 
                             //If we already have reported these two objects colliding,
                             //keep them in memory so that impulses can be balanced
@@ -89,7 +84,7 @@ namespace PhysicsEngine2D
             return a.bounds.Overlaps(b.bounds);
         }
 
-        public CollisionSystemSAP(HashSet<Manifold> manifoldList)
+        public CollisionSystemSap(HashSet<Manifold> manifoldList)
         {
             overlaps = manifoldList;
         }

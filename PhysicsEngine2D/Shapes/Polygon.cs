@@ -1,7 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 
-using XNAPrimitives2D;
-
 namespace PhysicsEngine2D
 {
     public class Polygon : Shape
@@ -9,12 +7,11 @@ namespace PhysicsEngine2D
         public Vector2[] vertices;
         public Vector2[] normals;
 
-        public Color color = Color.Black;
-
-        //Object to world Matrix
+        // Object to world Matrix
         public Matrix2 u;
 
-        //World to object matrix (simply u.Transpose() but shorter)
+        // World to object matrix (simply u.Transpose() but shorter)
+        // ReSharper disable once InconsistentNaming
         public Matrix2 uT
         {
             get
@@ -23,7 +20,7 @@ namespace PhysicsEngine2D
             }
         }
 
-        public int vertexCount
+        public int VertexCount
         {
             get
             {
@@ -35,11 +32,11 @@ namespace PhysicsEngine2D
         {
             vertices = verts.Clone() as Vector2[];
 
-            normals = new Vector2[vertexCount];
+            normals = new Vector2[VertexCount];
 
-            for (int i = 0; i < vertexCount; i++)
+            for (int i = 0; i < VertexCount; i++)
             {
-                Vector2 face = vertices[(i + 1) % vertexCount] - vertices[i];
+                Vector2 face = vertices[(i + 1) % VertexCount] - vertices[i];
                 normals[i] = MathUtil.Cross(face, 1);
                 normals[i].Normalize();
             }
@@ -69,23 +66,13 @@ namespace PhysicsEngine2D
             return new Polygon(vertices);
         }
 
-        public override void Draw()
-        {
-            Vector2[] verts = new Vector2[vertexCount];
-
-            for (int i = 0; i < vertexCount; i++)
-                verts[i] = u * vertices[i];
-
-            Primitives2D.DrawPolygon(body.position, verts, color);
-        }
-
         //Generate bounding box for this polygon
         public override Bounds GetBoundingBox()
         {
             Vector2 min = Vector2.One * float.MaxValue;
             Vector2 max = Vector2.One * float.MinValue;
 
-            for (int i = 0; i < vertexCount; i++)
+            for (int i = 0; i < VertexCount; i++)
             {
                 Vector2 vertex = u * vertices[i];
                 if (vertex.X < min.X) min.X = vertex.X;
@@ -108,15 +95,15 @@ namespace PhysicsEngine2D
             float I = 0.0f;
             const float OneBy3 = 1.0f / 3.0f;
 
-            for (int i1 = 0; i1 < vertexCount; ++i1)
+            for (int i1 = 0; i1 < VertexCount; ++i1)
             {
                 // Triangle vertices, third vertex implied as (0, 0)
                 Vector2 p1 = vertices[i1];
-                int i2 = i1 + 1 < vertexCount ? i1 + 1 : 0;
+                int i2 = i1 + 1 < VertexCount ? i1 + 1 : 0;
                 Vector2 p2 = vertices[i2];
 
-                float D = MathUtil.Cross(p1, p2);
-                float triangleArea = 0.5f * D;
+                float d = MathUtil.Cross(p1, p2);
+                float triangleArea = 0.5f * d;
 
                 area += triangleArea;
 
@@ -125,13 +112,13 @@ namespace PhysicsEngine2D
 
                 float intx2 = p1.X * p1.X + p2.X * p1.X + p2.X * p2.X;
                 float inty2 = p1.Y * p1.Y + p2.Y * p1.Y + p2.Y * p2.Y;
-                I += (0.25f * OneBy3 * D) * (intx2 + inty2);
+                I += 0.25f * OneBy3 * d * (intx2 + inty2);
             }
 
             c *= 1.0f / area;
 
             // Translate vertices to centroid (make the centroid (0, 0) for the polygon in model space)
-            for (int i = 0; i < vertexCount; ++i)
+            for (int i = 0; i < VertexCount; ++i)
                 vertices[i] -= c;
 
             float mass = density * area;
@@ -152,7 +139,7 @@ namespace PhysicsEngine2D
             Vector2 support = Vector2.Zero;
             float maxProjection = float.MinValue;
 
-            foreach(var vertex in vertices)
+            foreach(Vector2 vertex in vertices)
             {
                 float projection = Vector2.Dot(vertex, dir);
 

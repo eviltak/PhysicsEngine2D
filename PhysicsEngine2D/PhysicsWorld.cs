@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-
 using Microsoft.Xna.Framework;
 
 namespace PhysicsEngine2D
@@ -15,9 +13,9 @@ namespace PhysicsEngine2D
 
         internal HashSet<Manifold> manifolds = new HashSet<Manifold>();
 
-        private CollisionSystemSAP collisionSystem;
+        private CollisionSystemSap collisionSystem;
 
-        public int manifoldCount
+        public int ManifoldCount
         {
             get
             {
@@ -25,11 +23,11 @@ namespace PhysicsEngine2D
             }
         }
 
-        int maxIterations = 10;
+        private int maxIterations = 10;
 
         public PhysicsWorld()
         {
-            collisionSystem = new CollisionSystemSAP(manifolds);
+            collisionSystem = new CollisionSystemSap(manifolds);
         }
 
         public void AddBody(Body b)
@@ -54,7 +52,7 @@ namespace PhysicsEngine2D
                 {
                     for (int j = i + 1; j < bodies.Count; j++)
                     {
-                        var key = new Manifold(bodies[i], bodies[j]);
+                        Manifold key = new Manifold(bodies[i], bodies[j]);
                         if (!manifolds.Contains(key))
                             manifolds.Add(key);
                     }
@@ -67,31 +65,23 @@ namespace PhysicsEngine2D
             }
 
             //Narrow phase
-            foreach (var m in manifolds)
+            foreach (Manifold m in manifolds)
                 m.Collide();
 
-            foreach (var b in bodies)
+            foreach (Body b in bodies)
                 b.IntegrateForces(dt);
 
-            foreach (var m in manifolds)
+            foreach (Manifold m in manifolds)
                 m.PreStep(1 / dt);
 
             //Process maxIterations times for more stability
             for (int i = 0; i < maxIterations; i++)
-                foreach (var m in manifolds)
+                foreach (Manifold m in manifolds)
                     m.ApplyImpulse();
 
             //Integrate positions
             foreach (Body b in bodies)
                 b.IntegrateVelocity(dt);
-
-            //manifolds.Clear();
-        }
-
-        public void Draw()
-        {
-            foreach (Body b in bodies)
-                b.Draw();
         }
     }
 }
