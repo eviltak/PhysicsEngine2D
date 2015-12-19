@@ -83,7 +83,7 @@ namespace PhysicsEngine2D
             if (bodyA.inverseMass + bodyB.inverseMass == 0) return;
 
             const float KAllowedPenetration = 0.01f;
-            const float KBiasFactor = 0.2f;
+            const float KBiasFactor = 0.05f;
 
             for (int i = 0; i < contactCount; i++)
             {
@@ -112,7 +112,7 @@ namespace PhysicsEngine2D
                 c.tangentMass = 1 / c.tangentMass;
 
                 //Move bodies further if they are penetrating
-                c.bias = KBiasFactor * invDt * MathHelper.Max(0.0f, c.penetration - KAllowedPenetration);
+                c.bias = KBiasFactor * invDt * MathHelper.Max(0.0f, c.penetration - KAllowedPenetration) * contactCount;
 
                 //Accumulated impulses
                 Vector2 p = c.accumImpulse * normal + c.accumFriction * tangent;

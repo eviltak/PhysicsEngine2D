@@ -19,7 +19,7 @@ namespace PhysicsEngine2DDemo
 
         private SpriteFont font;
 
-        private float width = 20;
+        private float width = 30;
         private float height;
 
         private bool init;
@@ -27,17 +27,19 @@ namespace PhysicsEngine2DDemo
         public Game1()
         {
             IsMouseVisible = true;
-            GraphicsDeviceManager graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
 
-            graphics.PreferMultiSampling = true;
+            GraphicsDeviceManager graphics = new GraphicsDeviceManager(this)
+            {
+                PreferMultiSampling = true,
 
-            graphics.PreferredBackBufferWidth = 800;
-            graphics.PreferredBackBufferHeight = 600;
-
-            // graphics.ToggleFullScreen();
+                PreferredBackBufferWidth = 800,
+                PreferredBackBufferHeight = 600
+            };
 
             width *= graphics.PreferredBackBufferWidth / 800f;
+
+            IsFixedTimeStep = false;
 
             physicsWorld = new PhysicsWorld();
         }
@@ -58,12 +60,12 @@ namespace PhysicsEngine2DDemo
             b.SetStatic();
             physicsWorld.AddBody(b);
 
-            /*
-            Circle c = new Circle(1.5f);
+            
+            Circle c = new Circle(width * 0.1f);
             b = new Body(c, Vector2.Zero, 0, 0.3f);
             b.SetStatic();
             physicsWorld.AddBody(b);
-            */
+            
 
             box = new Polygon(0.5f, height / 2 - 0.5f);
             b = new Body(box, new Vector2(-width / 2 + 0.5f, 0.5f));
@@ -77,21 +79,23 @@ namespace PhysicsEngine2DDemo
             // Test scenes: Will soon be integrated into demo
             /*
             Shape s = new Polygon(.5f, .5f);
-
+            
             // Stacking
             System.Random r = new System.Random();
             //  Test for stacking, uncomment to test
             for (float x = -width / 2 + 2; x <= width / 2 - 2; x += 1.25f)
-                for (float y = -height / 2 + 1.5f; y < 10; y += 1.01f)
+                for (float y = -height / 2 + 1.5f; y < 10; y += 1.0f)
                     physicsWorld.AddBody(new Body(s.Clone(),
                         new Vector2(x + MathHelper.Lerp(0.01f, -0.01f, (float)r.NextDouble()), y)));
             */
 
             /*
+            Shape s = new Polygon(.5f, .5f);
+
             //  Pyramid (code taken directly from Box2D-Lite)
             Vector2 x = new Vector2(-width / 2 + 3, -height/2 + 1.5f);
 
-            const int N = 32;
+            const int N = 30;
 
             for (int i = 0; i < N; ++i)
             {
@@ -109,7 +113,7 @@ namespace PhysicsEngine2DDemo
                 x += new Vector2(0.5625f, 1.0f);
             }
             */
-
+    
             lastMouseState = Mouse.GetState();
             lastKeyState = Keyboard.GetState();
 
@@ -192,7 +196,7 @@ namespace PhysicsEngine2DDemo
             }
 
 
-            physicsWorld.Update(1 / 60f);
+            physicsWorld.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
             base.Update(gameTime);
         }

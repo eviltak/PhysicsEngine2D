@@ -15,14 +15,14 @@ namespace PhysicsEngine2D
         public static void CircleToCircle(Manifold m, Body a, Body b)
         {
             Circle shapeA = a.shape as Circle;
-            Circle shapeB = a.shape as Circle;
+            Circle shapeB = b.shape as Circle;
 
             m.contactCount = 0;
 
             Vector2 n = shapeB.body.position - shapeA.body.position;
             float r = shapeA.radius + shapeB.radius;
 
-            // If distance greater than sum of radii? Then exit
+            // If distance greater than sum of radii Then exit
             if (n.LengthSquared() > r * r)
                 return;
 
