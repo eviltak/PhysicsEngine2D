@@ -12,7 +12,7 @@ namespace PhysicsEngine2D
         {
             get
             {
-                return Math.Abs(max.Y - min.Y) * Math.Abs(max.X - min.X);
+                return Math.Abs((max.Y - min.Y) * (max.X - min.X));
             }
         }
 
@@ -20,6 +20,16 @@ namespace PhysicsEngine2D
         {
             this.min = min;
             this.max = max;
+        }
+
+        public bool Contains(Bounds bounds)
+        {
+            return Vector2.Min(min, bounds.min) == min && Vector2.Max(max, bounds.max) == max;
+        }
+
+        public Bounds Fatten(float increase)
+        {
+            return new Bounds(min - Vector2.One * increase, max + Vector2.One * increase);
         }
 
         public bool Overlaps(Bounds other)
@@ -43,11 +53,6 @@ namespace PhysicsEngine2D
             if (a.max.Y < b.min.Y || a.min.Y > b.max.Y) return false;
 
             return true;
-        }
-
-        public bool Contains(Bounds bounds)
-        {
-            return Vector2.Min(min, bounds.min) == min && Vector2.Max(max, bounds.max) == max;
         }
     }
 }

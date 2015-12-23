@@ -4,7 +4,7 @@ namespace PhysicsEngine2D
 {
     //Broad Phasing code using Sweep and Prune (SAP)
     //TODO: Add grid based SAP
-    internal class CollisionSystemSap
+    public class CollisionSystemSap : Broadphase
     {
         private class AxisPoint
         {
@@ -84,14 +84,15 @@ namespace PhysicsEngine2D
             return a.bounds.Overlaps(b.bounds);
         }
 
-        public CollisionSystemSap(HashSet<Manifold> manifoldList)
+        //Check both X and Y axes
+        public override void Update(List<Body> bodies)
         {
-            overlaps = manifoldList;
+            
         }
 
-        //Check both X and Y axes
-        public void BroadPhase(List<Body> bodies)
+        internal override void ComputePairs(List<Body> bodies, HashSet<Manifold> manifolds)
         {
+            overlaps = manifolds;
             ProcessAxis(GenerateSweepPoints(bodies, 0));
             ProcessAxis(GenerateSweepPoints(bodies, 1));
         }
@@ -108,6 +109,14 @@ namespace PhysicsEngine2D
             }
 
             return points;
+        }
+
+        public override void Add(Body body)
+        {
+        }
+
+        public override void Remove(Body body)
+        {
         }
     }
 }

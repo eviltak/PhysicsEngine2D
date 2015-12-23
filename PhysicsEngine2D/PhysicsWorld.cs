@@ -11,9 +11,11 @@ namespace PhysicsEngine2D
 
         public List<Body> bodies = new List<Body>();
 
+        public float timeScale = 1;
+
         internal HashSet<Manifold> manifolds = new HashSet<Manifold>();
 
-        private CollisionSystemSap collisionSystem;
+        private Broadphase broadphase;
 
         public int ManifoldCount
         {
@@ -23,27 +25,36 @@ namespace PhysicsEngine2D
             }
         }
 
-        private int maxIterations = 10;
+        private int maxIterations = 7;
 
         public PhysicsWorld()
         {
-            collisionSystem = new CollisionSystemSap(manifolds);
+
+            // Switch the collision system here:
+            //broadphase = new CollisionSystemSap();
+            broadphase = new DynamicAABBTree();
         }
 
         public void AddBody(Body b)
         {
             bodies.Add(b);
+            broadphase.Add(b);
         }
 
         public void RemoveBody(Body b)
         {
             bodies.Remove(b);
+            broadphase.Remove(b);
         }
 
         public void Update(float dt)
         {
+            dt *= timeScale;
+
             foreach (Body b in bodies)
                 b.Update();
+
+            broadphase.Update(bodies);
 
             if (bruteForce)
             {
@@ -61,7 +72,7 @@ namespace PhysicsEngine2D
             else
             {
                 //Broad phase
-                collisionSystem.BroadPhase(bodies);
+                broadphase.ComputePairs(bodies, manifolds);
             }
 
             //Narrow phase

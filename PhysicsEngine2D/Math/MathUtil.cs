@@ -37,5 +37,16 @@ namespace PhysicsEngine2D
 
             return new Vector2(v.X * cos - v.Y * sin, v.X * sin + v.Y * cos);
         }
+
+        public static Color Random(int seed)
+        {
+            Random r = new Random(seed);
+            Color color = new Color();
+            color.R = (byte)r.Next(0, 255);
+            color.G = (byte)r.Next(0, 255);
+            color.B = (byte)r.Next(0, 255);
+
+            return color;
+        }
     }
 }

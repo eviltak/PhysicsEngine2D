@@ -26,6 +26,9 @@ namespace PhysicsEngine2D
 
         public float gravityScale;
 
+        // For use in broadphase
+        public object data;
+
         public Body(Shape shape, Vector2 position, float orientation = 0,  float friction = 0.1f, float gravityScale = 1)
         {
             this.shape = shape;

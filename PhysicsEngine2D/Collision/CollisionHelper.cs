@@ -2,7 +2,7 @@
 
 namespace PhysicsEngine2D
 {
-    internal static class Collision
+    internal static class CollisionHelper
     {
         //2D jump table for easy narrow phase function call
         internal delegate void CollisionCheck(Manifold m, Body a, Body b);

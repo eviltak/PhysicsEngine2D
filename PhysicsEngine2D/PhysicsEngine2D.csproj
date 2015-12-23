@@ -52,11 +52,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collision\Broadphase\DynamicAABBTree\DynamicAABBTree.cs" />
+    <Compile Include="Collision\Broadphase\Broadphase.cs" />
     <Compile Include="Math\Matrix2.cs" />
     <Compile Include="Dynamics\Body.cs" />
     <Compile Include="Math\Bounds.cs" />
     <Compile Include="Shapes\Circle.cs" />
-    <Compile Include="Collision\Collision.cs" />
+    <Compile Include="Collision\CollisionHelper.cs" />
     <Compile Include="Collision\Manifold.cs" />
     <Compile Include="Collision\Broadphase\CollisionSystemSAP.cs" />
     <Compile Include="Math\MathUtil.cs" />

@@ -74,7 +74,7 @@ namespace PhysicsEngine2D
         public void Collide()
         {
             //Check whether colliding and fill data in us
-            Collision.collisionCallbacks[(int)bodyA.shape.type][(int)bodyB.shape.type](this, bodyA, bodyB);
+            CollisionHelper.collisionCallbacks[(int)bodyA.shape.type][(int)bodyB.shape.type](this, bodyA, bodyB);
         }
 
         // Step before applying impulse for Accumulated impulse
@@ -112,7 +112,7 @@ namespace PhysicsEngine2D
                 c.tangentMass = 1 / c.tangentMass;
 
                 //Move bodies further if they are penetrating
-                c.bias = KBiasFactor * invDt * MathHelper.Max(0.0f, c.penetration - KAllowedPenetration) * contactCount;
+                c.bias = KBiasFactor * invDt * MathHelper.Max(0.0f, c.penetration - KAllowedPenetration);
 
                 //Accumulated impulses
                 Vector2 p = c.accumImpulse * normal + c.accumFriction * tangent;

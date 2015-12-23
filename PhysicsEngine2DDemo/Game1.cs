@@ -19,7 +19,7 @@ namespace PhysicsEngine2DDemo
 
         private SpriteFont font;
 
-        private float width = 30;
+        private float width = 40;
         private float height;
 
         private bool init;
@@ -33,8 +33,8 @@ namespace PhysicsEngine2DDemo
             {
                 PreferMultiSampling = true,
 
-                PreferredBackBufferWidth = 800,
-                PreferredBackBufferHeight = 600
+                PreferredBackBufferWidth = 1024,
+                PreferredBackBufferHeight = 768
             };
 
             width *= graphics.PreferredBackBufferWidth / 800f;
@@ -42,6 +42,7 @@ namespace PhysicsEngine2DDemo
             IsFixedTimeStep = false;
 
             physicsWorld = new PhysicsWorld();
+            physicsWorld.timeScale = 1f;
         }
 
         // / <summary>
@@ -56,23 +57,23 @@ namespace PhysicsEngine2DDemo
             Primitives2D.Initialize(GraphicsDevice, height);
 
             Polygon box = new Polygon(width / 2, 0.5f);
-            Body b = new Body(box, new Vector2(0, -(height - 1) / 2));
+            Body b = new Body(box, new Vector2(0, -height / 2 + 0.5f));
             b.SetStatic();
             physicsWorld.AddBody(b);
 
             
             Circle c = new Circle(width * 0.1f);
             b = new Body(c, Vector2.Zero, 0, 0.3f);
-            b.SetStatic();
             physicsWorld.AddBody(b);
+            b.SetStatic();
             
 
             box = new Polygon(0.5f, height / 2 - 0.5f);
-            b = new Body(box, new Vector2(-width / 2 + 0.5f, 0.5f));
+            b = new Body(box, new Vector2(-width / 2 + 1f, 0.6f));
             b.SetStatic();
             physicsWorld.AddBody(b);
 
-            b = new Body(box.Clone(), new Vector2(width / 2 - 0.5f, 0.5f));
+            b = new Body(box.Clone(), new Vector2(width / 2 - 1f, 0.6f));
             b.SetStatic();
             physicsWorld.AddBody(b);
 
@@ -83,10 +84,10 @@ namespace PhysicsEngine2DDemo
             // Stacking
             System.Random r = new System.Random();
             //  Test for stacking, uncomment to test
-            for (float x = -width / 2 + 2; x <= width / 2 - 2; x += 1.25f)
-                for (float y = -height / 2 + 1.5f; y < 10; y += 1.0f)
+            for (float x = -width / 2 + 2.5f; x <= width / 2 - 2; x += 1.25f)
+                for (float y = -height / 2 + 1.5f; y < -5; y += 1.0f)
                     physicsWorld.AddBody(new Body(s.Clone(),
-                        new Vector2(x + MathHelper.Lerp(0.01f, -0.01f, (float)r.NextDouble()), y)));
+                        new Vector2(x + MathHelper.Lerp(0.05f, -0.05f, (float)r.NextDouble()), y)));
             */
 
             /*
@@ -95,7 +96,7 @@ namespace PhysicsEngine2DDemo
             //  Pyramid (code taken directly from Box2D-Lite)
             Vector2 x = new Vector2(-width / 2 + 3, -height/2 + 1.5f);
 
-            const int N = 30;
+            const int N = 50;
 
             for (int i = 0; i < N; ++i)
             {
@@ -207,24 +208,24 @@ namespace PhysicsEngine2DDemo
         // / <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             spriteBatch.Begin();
 
             spriteBatch.DrawString(font, "FPS : " + 1 / dt, new Vector2(10, 10), Color.White);
-
+            
             spriteBatch.DrawString(font, "No of bodies: " + physicsWorld.bodies.Count,
                 new Vector2(10, 35), Color.White);
-
+                
             spriteBatch.DrawString(font, "(B)rute force collisions: " +
                                          (PhysicsWorld.bruteForce ? "Yes" : "No"), new Vector2(10, 60), Color.White);
 
             spriteBatch.End();
 
             foreach(Body body in physicsWorld.bodies)
-                DrawBody(body, Color.Black);
+                DrawBody(body, Color.White);
 
             base.Draw(gameTime);
         }
@@ -244,9 +245,9 @@ namespace PhysicsEngine2DDemo
             else
             {
                 Circle circle = body.shape as Circle;
-                Primitives2D.DrawCircle(body.position, circle.radius, Color.Black);
+                Primitives2D.DrawCircle(body.position, circle.radius, color);
                 Vector2 r = MathUtil.Rotate(-Vector2.UnitY * circle.radius, circle.body.orientation);
-                Primitives2D.DrawLine(body.position, body.position + r, Color.Black);
+                Primitives2D.DrawLine(body.position, body.position + r, color);
             }
         }
     }
