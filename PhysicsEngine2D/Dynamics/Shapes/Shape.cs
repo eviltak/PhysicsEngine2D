@@ -9,6 +9,8 @@
         };
 
         public Body body;
+        public Transform transform;
+
         public ShapeType type;
         
         public abstract Shape Clone();

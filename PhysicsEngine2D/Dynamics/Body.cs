@@ -1,6 +1,4 @@
 ﻿
-using Microsoft.Xna.Framework;
-
 namespace PhysicsEngine2D
 {
     public class Body
@@ -9,13 +7,12 @@ namespace PhysicsEngine2D
 
         public Bounds bounds;
 
-        public Vector2 position;
-        public float orientation;
+        public Transform transform;
 
-        public Vector2 velocity;
+        public Vec2 velocity;
         public float angularVelocity;
 
-        public Vector2 force;
+        public Vec2 force;
         public float torque;
 
         public float inverseMass;
@@ -29,21 +26,28 @@ namespace PhysicsEngine2D
         // For use in broadphase
         public object data;
 
-        public Body(Shape shape, Vector2 position, float orientation = 0,  float friction = 0.1f, float gravityScale = 1)
+        public Vec2 position
+        {
+            get
+            {
+                return transform.position;
+            }
+        }
+
+        public Body(Shape shape, Vec2 position, float rotation = 0,  float friction = 0.1f, float gravityScale = 1)
         {
             this.shape = shape;
             this.shape.body = this;
 
-            this.position = position;
-
-            this.orientation = orientation;
+            transform = new Transform(position, rotation);
+            this.shape.transform = transform;
 
             this.friction = friction;
 
             this.gravityScale = gravityScale;
 
             shape.ComputeMass(1);
-            shape.SetOrientation(orientation);
+            shape.SetOrientation(rotation);
 
             bounds = shape.GetBoundingBox();
         }
@@ -62,7 +66,7 @@ namespace PhysicsEngine2D
             velocity += dt * (PhysicsWorld.gravity * gravityScale + inverseMass * force);
             angularVelocity += dt * torque * inverseInertia;
 
-            force = Vector2.Zero;
+            force = Vec2.Zero;
             torque = 0;
         }
 
@@ -71,10 +75,10 @@ namespace PhysicsEngine2D
             if (inverseMass == 0)
                 return;
             
-            position += velocity * dt;
-            orientation += angularVelocity * dt;
+            transform.position += velocity * dt;
+            transform.rotation += angularVelocity * dt;
 
-            shape.SetOrientation(orientation);
+            transform.UpdateMatrix();
         }
 
         public void Update()
@@ -83,10 +87,10 @@ namespace PhysicsEngine2D
             bounds = shape.GetBoundingBox();
         }
 
-        public void ApplyImpulse(Vector2 impulse, Vector2 contactRadius)
+        public void ApplyImpulse(Vec2 impulse, Vec2 contactRadius)
         {
             velocity += impulse * inverseMass;
-            angularVelocity += inverseInertia * MathUtil.Cross(contactRadius, impulse);
+            angularVelocity += inverseInertia * Vec2.Cross(contactRadius, impulse);
         }
     }
 }

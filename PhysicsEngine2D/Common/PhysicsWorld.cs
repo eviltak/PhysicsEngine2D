@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
-using Microsoft.Xna.Framework;
 
 namespace PhysicsEngine2D
 {
     public class PhysicsWorld
     {
-        public static Vector2 gravity = new Vector2(0, -9.8f);
+        public static Vec2 gravity = new Vec2(0, -9.8f);
 
         public static bool bruteForce = false;
 
@@ -32,7 +31,7 @@ namespace PhysicsEngine2D
 
             // Switch the collision system here:
             //broadphase = new CollisionSystemSap();
-            broadphase = new DynamicAABBTree();
+            broadphase = new DynamicBoundsTree();
         }
 
         public void AddBody(Body b)
@@ -77,7 +76,7 @@ namespace PhysicsEngine2D
 
             //Narrow phase
             foreach (Manifold m in manifolds)
-                m.Collide();
+                m.SolveContacts();
 
             foreach (Body b in bodies)
                 b.IntegrateForces(dt);

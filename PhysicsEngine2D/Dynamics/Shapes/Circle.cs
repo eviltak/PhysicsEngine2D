@@ -1,6 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-
-namespace PhysicsEngine2D
+﻿namespace PhysicsEngine2D
 {
     public class Circle : Shape
     {
@@ -19,14 +17,14 @@ namespace PhysicsEngine2D
 
         public override Bounds GetBoundingBox()
         {
-            Vector2 min = body.position - Vector2.One * radius;
-            Vector2 max = body.position + Vector2.One * radius;
+            Vec2 min = body.position - Vec2.One * radius;
+            Vec2 max = body.position + Vec2.One * radius;
             return new Bounds(min, max);
         }
 
         public override void ComputeMass(float density)
         {
-            float mass = MathHelper.Pi * radius * radius * density;
+            float mass = Mathf.Pi * radius * radius * density;
             float inertia = mass * radius * radius;
 
             body.inverseMass = mass == 0 ? 0 : 1 / mass;

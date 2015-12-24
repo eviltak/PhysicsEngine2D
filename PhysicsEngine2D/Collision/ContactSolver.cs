@@ -1,15 +1,13 @@
-﻿using Microsoft.Xna.Framework;
-
-namespace PhysicsEngine2D
+﻿namespace PhysicsEngine2D
 {
-    internal static class CollisionHelper
+    internal static class ContactSolver
     {
         //2D jump table for easy narrow phase function call
-        internal delegate void CollisionCheck(Manifold m, Body a, Body b);
+        internal delegate void SolveContactCallback(Manifold m, Body a, Body b);
 
-        internal static CollisionCheck[][] collisionCallbacks = {
-                new CollisionCheck[] { PolygonToPolygon, PolygonToCircle },
-                new CollisionCheck[] { CircleToPolygon, CircleToCircle }
+        internal static SolveContactCallback[][] solveContacts = {
+                new SolveContactCallback[] { PolygonToPolygon, PolygonToCircle },
+                new SolveContactCallback[] { CircleToPolygon, CircleToCircle }
         };
 
         public static void CircleToCircle(Manifold m, Body a, Body b)
@@ -19,14 +17,14 @@ namespace PhysicsEngine2D
 
             m.contactCount = 0;
 
-            Vector2 n = shapeB.body.position - shapeA.body.position;
+            Vec2 n = shapeB.body.position - shapeA.body.position;
             float r = shapeA.radius + shapeB.radius;
 
             // If distance greater than sum of radii Then exit
-            if (n.LengthSquared() > r * r)
+            if (n.LengthSquared > r * r)
                 return;
 
-            float d = n.Length();
+            float d = n.Length;
 
             Contact contact;
 
@@ -42,7 +40,7 @@ namespace PhysicsEngine2D
                 contact = new Contact(a.position);
                 // Circles are concentric, take a consistent value
                 contact.penetration = shapeA.radius;
-                m.normal = Vector2.UnitY;
+                m.normal = Vec2.UnitY;
             }
 
             m.Update(1, contact);
@@ -73,7 +71,7 @@ namespace PhysicsEngine2D
 
             Polygon refPoly, incPoly;
 
-            if (MathUtil.BiasGreaterThan(penetrationA, penetrationB))
+            if (Mathf.BiasGreaterThan(penetrationA, penetrationB))
             {
                 refPoly = shapeA;
                 incPoly = shapeB;
@@ -88,25 +86,25 @@ namespace PhysicsEngine2D
                 flip = true;
             }
 
-            Vector2[] incidentFace;
+            Vec2[] incidentFace;
             GetIncidentFace(out incidentFace, refPoly, incPoly, referenceIndex);
 
             //Set up vertices
-            Vector2 v1 = refPoly.vertices[referenceIndex];
-            Vector2 v2 = refPoly.vertices[(referenceIndex + 1) % refPoly.VertexCount];
+            Vec2 v1 = refPoly.vertices[referenceIndex];
+            Vec2 v2 = refPoly.vertices[(referenceIndex + 1) % refPoly.VertexCount];
 
             //Transform to world space
-            v1 = refPoly.u * v1 + refPoly.body.position;
-            v2 = refPoly.u * v2 + refPoly.body.position;
+            v1 = refPoly.transform.LocalToWorldPosition(v1);
+            v2 = refPoly.transform.LocalToWorldPosition(v2);
 
-            Vector2 sidePlaneNormal = v2 - v1;
+            Vec2 sidePlaneNormal = v2 - v1;
             sidePlaneNormal.Normalize();
 
-            Vector2 refFaceNormal = new Vector2(sidePlaneNormal.Y, -sidePlaneNormal.X);
+            Vec2 refFaceNormal = new Vec2(sidePlaneNormal.y, -sidePlaneNormal.x);
 
-            float refC = Vector2.Dot(refFaceNormal, v1);
-            float negSide = -Vector2.Dot(sidePlaneNormal, v1);
-            float posSide = Vector2.Dot(sidePlaneNormal, v2);
+            float refC = Vec2.Dot(refFaceNormal, v1);
+            float negSide = -Vec2.Dot(sidePlaneNormal, v1);
+            float posSide = Vec2.Dot(sidePlaneNormal, v2);
 
             // Due to floating point error, possible to not have required points
             if (Clip(-sidePlaneNormal, negSide, ref incidentFace) < 2)
@@ -123,7 +121,7 @@ namespace PhysicsEngine2D
             int cp = 0; // clipped points behind reference face
             for (int i = 0; i < 2; i++)
             {
-                float separation = Vector2.Dot(refFaceNormal, incidentFace[i]) - refC;
+                float separation = Vec2.Dot(refFaceNormal, incidentFace[i]) - refC;
                 if (separation <= 0.0f)
                 {
                     contacts[cp] = new Contact(incidentFace[i]);
@@ -144,23 +142,22 @@ namespace PhysicsEngine2D
             for (int i = 0; i < a.VertexCount; i++)
             {
                 //Get world space normal of A's face
-                Vector2 n = a.normals[i];
-                Vector2 nW = a.u * n;
+                Vec2 n = a.normals[i];
+                Vec2 nW = a.transform.LocalToWorldDirection(n);
 
                 //Retrieve normal in B's space
-                n = b.uT * nW;
+                n = b.transform.WorldToLocalDirection(nW);
 
                 //Get furthest point in negative normal direction
-                Vector2 s = b.GetSupportPoint(-n);
+                Vec2 s = b.GetSupportPoint(-n);
 
                 //Get vertex on A's face, transform to B's space
-                Vector2 v = a.vertices[i];
-                v = a.u * v + a.body.position;
-                v -= b.body.position;
-                v = b.uT * v;
+                Vec2 v = a.vertices[i];
+                v = a.transform.LocalToWorldPosition(v);
+                v = b.transform.WorldToLocalPosition(v);
 
                 //Find penetration distance
-                float d = Vector2.Dot(s - v, n);
+                float d = Vec2.Dot(s - v, n);
 
                 //Store greatest distance
                 if (d > bestDistance)
@@ -173,16 +170,16 @@ namespace PhysicsEngine2D
             return bestDistance;
         }
 
-        private static void GetIncidentFace(out Vector2[] face,
+        private static void GetIncidentFace(out Vec2[] face,
             Polygon refP, Polygon incP, int referenceIndex)
         {
-            face = new Vector2[2];
+            face = new Vec2[2];
             //Retrieve the reference normal
-            Vector2 n = refP.normals[referenceIndex];
+            Vec2 n = refP.normals[referenceIndex];
 
             //Transform into incident poly's space
-            n = refP.u * n;    //To world space
-            n = incP.uT * n;    //To incident poly's space
+            n = refP.transform.LocalToWorldDirection(n);    //To world space
+            n = incP.transform.WorldToLocalDirection(n);    //To incident poly's space
 
             //Find face whose normal is most normal (perpendicular) to the normal (oh...)
             int incidentFace = -1;
@@ -190,7 +187,7 @@ namespace PhysicsEngine2D
 
             for (int i = 0; i < incP.VertexCount; i++)
             {
-                float dot = Vector2.Dot(n, incP.normals[i]);
+                float dot = Vec2.Dot(n, incP.normals[i]);
                 if (dot < minDot)
                 {
                     minDot = dot;
@@ -199,19 +196,18 @@ namespace PhysicsEngine2D
             }
 
             //Get world space face
-            face[0] = incP.u * incP.vertices[incidentFace] + incP.body.position;
-            face[1] = incP.u * incP.vertices[(incidentFace + 1) % incP.VertexCount]
-                + incP.body.position;
+            face[0] = incP.transform.LocalToWorldPosition(incP.vertices[incidentFace]);
+            face[1] = incP.transform.LocalToWorldPosition(incP.vertices[(incidentFace + 1) % incP.VertexCount]);
         }
 
-        private static int Clip(Vector2 n, float c, ref Vector2[] face)
+        private static int Clip(Vec2 n, float c, ref Vec2[] face)
         {
             int clippedPoints = 0;
-            Vector2[] res = { face[0], face[1] };
+            Vec2[] res = { face[0], face[1] };
 
             //Get distance to line (ax + by = -c, n = (a, b))
-            float d1 = Vector2.Dot(n, face[0]) - c;
-            float d2 = Vector2.Dot(n, face[1]) - c;
+            float d1 = Vec2.Dot(n, face[0]) - c;
+            float d2 = Vec2.Dot(n, face[1]) - c;
 
             //If behind plane, clip
             //Here we aren't actually clipping, but we are just incrementing the count
@@ -242,8 +238,8 @@ namespace PhysicsEngine2D
             m.contactCount = 0;
 
             // Transform circle center to Polygon model space
-            Vector2 center = a.position;
-            center = shapeB.u.Transpose() * (center - b.position);
+            Vec2 center = a.position;
+            center = shapeB.transform.WorldToLocalPosition(center);
 
             // Find edge with minimum penetration
             // Exact concept as using support points in Polygon vs Polygon
@@ -251,7 +247,7 @@ namespace PhysicsEngine2D
             int faceNormal = 0;
             for (int i = 0; i < shapeB.VertexCount; ++i)
             {
-                float s = Vector2.Dot(shapeB.normals[i], center - shapeB.vertices[i]);
+                float s = Vec2.Dot(shapeB.normals[i], center - shapeB.vertices[i]);
 
                 if (s > shapeA.radius)
                     return;
@@ -264,16 +260,16 @@ namespace PhysicsEngine2D
             }
 
             // Grab face's vertices
-            Vector2 v1 = shapeB.vertices[faceNormal];
+            Vec2 v1 = shapeB.vertices[faceNormal];
             int i2 = faceNormal + 1 < shapeB.VertexCount ? faceNormal + 1 : 0;
-            Vector2 v2 = shapeB.vertices[i2];
+            Vec2 v2 = shapeB.vertices[i2];
 
-            Contact c = new Contact(Vector2.Zero);
+            Contact c = new Contact(Vec2.Zero);
 
             // Check to see if center is within polygon
             if (separation < float.Epsilon)
             {
-                m.normal = -(shapeB.u * shapeB.normals[faceNormal]);
+                m.normal = -shapeB.transform.LocalToWorldDirection(shapeB.normals[faceNormal]);
                 c.position = m.normal * shapeA.radius + a.position;
                 c.penetration = shapeA.radius;
                 m.Update(1, c);
@@ -281,22 +277,22 @@ namespace PhysicsEngine2D
             }
 
             // Determine which voronoi region of the edge center of circle lies within
-            float dot1 = Vector2.Dot(center - v1, v2 - v1);
-            float dot2 = Vector2.Dot(center - v2, v1 - v2);
+            float dot1 = Vec2.Dot(center - v1, v2 - v1);
+            float dot2 = Vec2.Dot(center - v2, v1 - v2);
             c.penetration = shapeA.radius - separation;
 
             // Closest to v1
             if (dot1 <= 0.0f)
             {
-                if (Vector2.DistanceSquared(center, v1) > shapeA.radius * shapeA.radius)
+                if (Vec2.DistanceSquared(center, v1) > shapeA.radius * shapeA.radius)
                     return;
 
-                Vector2 n = v1 - center;
-                n = shapeB.u * n;
+                Vec2 n = v1 - center;
+                n = shapeB.transform.LocalToWorldDirection(n);
                 n.Normalize();
                 m.normal = n;
 
-                v1 = shapeB.u * v1 + b.position;
+                v1 = shapeB.transform.LocalToWorldPosition(v1);
                 c.position = v1;
                 m.Update(1, c);
             }
@@ -304,15 +300,15 @@ namespace PhysicsEngine2D
             // Closest to v2
             else if (dot2 <= 0.0f)
             {
-                if (Vector2.DistanceSquared(center, v2) > shapeA.radius * shapeA.radius)
+                if (Vec2.DistanceSquared(center, v2) > shapeA.radius * shapeA.radius)
                     return;
 
-                Vector2 n = v2 - center;
-                v2 = shapeB.u * v2 + b.position;
+                Vec2 n = v2 - center;
+                v2 = shapeB.transform.LocalToWorldPosition(v2);
                 c.position = v2;
                 m.Update(1, c);
-
-                n = shapeB.u * n;
+                
+                n = shapeB.transform.LocalToWorldDirection(n);
                 n.Normalize();
                 m.normal = n;
             }
@@ -320,11 +316,11 @@ namespace PhysicsEngine2D
             // Closest to face
             else
             {
-                Vector2 n = shapeB.normals[faceNormal];
-                if (Vector2.Dot(center - v1, n) > shapeA.radius)
+                Vec2 n = shapeB.normals[faceNormal];
+                if (Vec2.Dot(center - v1, n) > shapeA.radius)
                     return;
 
-                n = shapeB.u * n;
+                n = shapeB.transform.LocalToWorldDirection(n);
                 m.normal = -n;
                 c.position = m.normal * shapeA.radius + a.position;
                 m.Update(1, c);

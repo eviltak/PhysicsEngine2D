@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using Microsoft.Xna.Framework;
-using XNAPrimitives2D;
+﻿using System.Collections.Generic;
 
 namespace PhysicsEngine2D
 {
-    public class DynamicAABBTree : Broadphase
+    public class DynamicBoundsTree : Broadphase
     {
         private const float Margin = 0.2f;
 
@@ -94,28 +89,6 @@ namespace PhysicsEngine2D
                 else
                     bounds = child0.bounds.Union(child1.bounds);
             }
-
-            public void DebugDraw(int height)
-            {
-                Vector2[] vertices = { bounds.min, new Vector2(bounds.min.X, bounds.max.Y),
-                    bounds.max, new Vector2(bounds.max.X, bounds.min.Y) };
-
-                Vector2 c = vertices.Aggregate(Vector2.Zero, (current, v) => current + v);
-                c /= 4;
-
-                for (int i = 0; i < vertices.Length; i++)
-                {
-                    vertices[i] -= c;
-                }
-
-                Primitives2D.DrawPolygon(c, vertices, MathUtil.Random(height));
-
-                if (!IsLeaf)
-                {
-                    child0.DebugDraw(height + 1);
-                    child1.DebugDraw(height + 1);
-                }
-            }
         }
 
         private Node root;
@@ -182,12 +155,6 @@ namespace PhysicsEngine2D
                 startNode = startNode.parent;
             }
         }
-
-        public void DebugDraw()
-        {
-            root?.DebugDraw(0);
-        }
-
         public override void Remove(Body body)
         {
             if (root == null) return;

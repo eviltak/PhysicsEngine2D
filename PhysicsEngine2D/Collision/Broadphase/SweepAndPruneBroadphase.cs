@@ -4,7 +4,7 @@ namespace PhysicsEngine2D
 {
     //Broad Phasing code using Sweep and Prune (SAP)
     //TODO: Add grid based SAP
-    public class CollisionSystemSap : Broadphase
+    public class SweepAndPruneBroadphase : Broadphase
     {
         private class AxisPoint
         {
@@ -25,10 +25,10 @@ namespace PhysicsEngine2D
                 {
                     if (isMin)
                     {
-                        return axis == 0 ? body.bounds.min.X : body.bounds.min.Y;
+                        return axis == 0 ? body.bounds.min.x : body.bounds.min.y;
                     }
 
-                    return axis == 0 ? body.bounds.max.X : body.bounds.max.Y;
+                    return axis == 0 ? body.bounds.max.x : body.bounds.max.y;
                 }
             }
         }

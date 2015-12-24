@@ -1,4 +1,5 @@
-﻿using PhysicsEngine2D;
+﻿using System;
+using PhysicsEngine2D;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -57,23 +58,23 @@ namespace PhysicsEngine2DDemo
             Primitives2D.Initialize(GraphicsDevice, height);
 
             Polygon box = new Polygon(width / 2, 0.5f);
-            Body b = new Body(box, new Vector2(0, -height / 2 + 0.5f));
+            Body b = new Body(box, new Vec2(0, -height / 2 + 0.5f));
             b.SetStatic();
             physicsWorld.AddBody(b);
 
             
             Circle c = new Circle(width * 0.1f);
-            b = new Body(c, Vector2.Zero, 0, 0.3f);
+            b = new Body(c, Vec2.Zero, 0, 0.3f);
             physicsWorld.AddBody(b);
             b.SetStatic();
             
 
             box = new Polygon(0.5f, height / 2 - 0.5f);
-            b = new Body(box, new Vector2(-width / 2 + 1f, 0.6f));
+            b = new Body(box, new Vec2(-width / 2 + 1f, 0.6f));
             b.SetStatic();
             physicsWorld.AddBody(b);
 
-            b = new Body(box.Clone(), new Vector2(width / 2 - 1f, 0.6f));
+            b = new Body(box.Clone(), new Vec2(width / 2 - 1f, 0.6f));
             b.SetStatic();
             physicsWorld.AddBody(b);
 
@@ -173,7 +174,7 @@ namespace PhysicsEngine2DDemo
             if (currentKeyState.IsKeyUp(Keys.B) && lastKeyState.IsKeyDown(Keys.B))
                 PhysicsWorld.bruteForce = !PhysicsWorld.bruteForce;
 
-            Vector2 mouse = new Vector2(
+            Vec2 mouse = new Vec2(
                 (float)currentMouseState.X / GraphicsDevice.Viewport.Width * width - width * 0.5f,
                 (1 - (float)currentMouseState.Y / GraphicsDevice.Viewport.Height) * height - height * 0.5f);
 
@@ -196,6 +197,7 @@ namespace PhysicsEngine2DDemo
                 physicsWorld.AddBody(b);
             }
 
+            Ray2 ray = new Ray2(mouse, -mouse.Normalized);
 
             physicsWorld.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
@@ -235,20 +237,25 @@ namespace PhysicsEngine2DDemo
             if (body.shape is Polygon)
             {
                 Polygon polygon = body.shape as Polygon;
-                Vector2[] verts = new Vector2[polygon.VertexCount];
+                Vec2[] verts = new Vec2[polygon.VertexCount];
 
                 for (int i = 0; i < polygon.VertexCount; i++)
-                    verts[i] = polygon.u * polygon.vertices[i];
+                    verts[i] = polygon.transform.localToWorldRotation * polygon.vertices[i];
 
-                Primitives2D.DrawPolygon(body.position, verts, color);
+                Primitives2D.DrawPolygon(Vec2ToVector2(body.position), Array.ConvertAll(verts, Vec2ToVector2), color);
             }
-            else
+            else if (body.shape is Circle)
             {
                 Circle circle = body.shape as Circle;
-                Primitives2D.DrawCircle(body.position, circle.radius, color);
-                Vector2 r = MathUtil.Rotate(-Vector2.UnitY * circle.radius, circle.body.orientation);
-                Primitives2D.DrawLine(body.position, body.position + r, color);
+                Primitives2D.DrawCircle(Vec2ToVector2(body.position), circle.radius, color);
+                Vec2 r = body.transform.LocalToWorldDirection(-Vec2.UnitY * circle.radius);
+                Primitives2D.DrawLine(Vec2ToVector2(body.position), Vec2ToVector2(body.position + r), color);
             }
+        }
+
+        private static Vector2 Vec2ToVector2(Vec2 v)
+        {
+            return new Vector2(v.x, v.y);
         }
     }
 }

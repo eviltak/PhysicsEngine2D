@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.Xna.Framework;
 
 namespace PhysicsEngine2D
 {
@@ -40,10 +39,10 @@ namespace PhysicsEngine2D
         //Operators
 
         //Matrix * Vector
-        public static Vector2 operator *(Matrix2 mat, Vector2 vec)
+        public static Vec2 operator *(Matrix2 mat, Vec2 vec)
         {
-            return new Vector2(mat.m00 * vec.X + mat.m01 * vec.Y, 
-                               mat.m10 * vec.X + mat.m11 * vec.Y);
+            return new Vec2(mat.m00 * vec.x + mat.m01 * vec.y, 
+                               mat.m10 * vec.x + mat.m11 * vec.y);
         }
 
         //Matrix * Matrix
