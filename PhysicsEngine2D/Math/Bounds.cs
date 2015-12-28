@@ -54,7 +54,7 @@ namespace PhysicsEngine2D
             return true;
         }
 
-        public bool Raycast(Ray2 ray)
+        public bool Raycast(Ray2 ray, float distance = Ray2.Tmax)
         {
             float tminX = (min.x - ray.origin.x) / ray.direction.x;
             float tmaxX = (max.x - ray.origin.x) / ray.direction.x;

@@ -1,4 +1,6 @@
-﻿namespace PhysicsEngine2D
+﻿using System;
+
+namespace PhysicsEngine2D
 {
     public class Polygon : Shape
     {
@@ -54,10 +56,10 @@
         //Generate bounding box for this polygon
         public override Bounds GetBoundingBox()
         {
-            Vec2 min = Vec2.One * float.MaxValue;
-            Vec2 max = Vec2.One * float.MinValue;
+            Vec2 min = transform.localToWorldRotation * vertices[0];
+            Vec2 max = min;
 
-            for (int i = 0; i < VertexCount; i++)
+            for (int i = 1; i < VertexCount; i++)
             {
                 Vec2 vertex = transform.localToWorldRotation * vertices[i];
                 if (vertex.x < min.x) min.x = vertex.x;
@@ -111,6 +113,39 @@
 
             float inertia = I * density;
             body.inverseInertia = inertia != 0 ? 1.0f / inertia : 0.0f;
+        }
+
+        public override bool Raycast(Ray2 ray, float distance, out RaycastResult result)
+        {
+            result = new RaycastResult();
+
+            float tmin = Ray2.Tmax;
+            int crossings = 0;
+
+            for (int i = 0; i < VertexCount; i++)
+            {
+                float t;
+                int j = (i + 1) % VertexCount;
+
+                Vec2 a = transform.LocalToWorldPosition(vertices[i]);
+                Vec2 b = transform.LocalToWorldPosition(vertices[j]);
+
+                if (ray.IntersectSegment(a, b, distance, out t))
+                {
+                    crossings++;
+                    if (t < tmin && t <= distance)
+                    {
+                        tmin = t;
+
+                        result.point = ray.origin + ray.direction * tmin;
+                        result.normal = transform.LocalToWorldDirection(normals[i]);
+                        result.distance = tmin;
+                    }
+                }
+            }
+
+            // Point in polygon test, to make sure that origin isn't inside polygon
+            return crossings > 0 && crossings % 2 == 0;
         }
 
         //Get furthest vertex on polygon in a direction

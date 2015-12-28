@@ -16,7 +16,6 @@
         public abstract Shape Clone();
         public abstract Bounds GetBoundingBox();
         public abstract void ComputeMass(float density);
-
-        public virtual void SetOrientation(float orientation) { }
+        public abstract bool Raycast(Ray2 ray, float distance, out RaycastResult result);
     }
 }

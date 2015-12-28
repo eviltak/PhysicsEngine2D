@@ -54,7 +54,12 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Game1.cs" />
+    <Compile Include="Demos\Demo.cs" />
+    <Compile Include="Demos\Demo1.cs" />
+    <Compile Include="Demos\Demo2.cs" />
+    <Compile Include="DemoGame.cs" />
+    <Compile Include="Demos\Demo3.cs" />
+    <Compile Include="Demos\Demo4.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

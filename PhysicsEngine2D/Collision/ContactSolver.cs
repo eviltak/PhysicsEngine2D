@@ -21,10 +21,10 @@
             float r = shapeA.radius + shapeB.radius;
 
             // If distance greater than sum of radii Then exit
-            if (n.LengthSquared > r * r)
+            if (n.SqrMagnitude > r * r)
                 return;
 
-            float d = n.Length;
+            float d = n.Magnitude;
 
             Contact contact;
 

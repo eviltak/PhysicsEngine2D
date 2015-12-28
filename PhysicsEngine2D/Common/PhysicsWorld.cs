@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net.NetworkInformation;
 
 namespace PhysicsEngine2D
 {
@@ -44,6 +45,33 @@ namespace PhysicsEngine2D
         {
             bodies.Remove(b);
             broadphase.Remove(b);
+        }
+
+        public void Clear()
+        {
+            bodies.Clear();
+            manifolds.Clear();
+            broadphase.Clear();
+        }
+
+        public bool Raycast(Vec2 origin, Vec2 direction, out RaycastResult result)
+        {
+            return Raycast(origin, direction, Ray2.Tmax, out result);
+        }
+
+        public bool Raycast(Vec2 origin, Vec2 direction, float distance, out RaycastResult result)
+        {
+            return Raycast(new Ray2(origin, direction), distance, out result);
+        }
+
+        public bool Raycast(Ray2 ray, out RaycastResult result)
+        {
+            return Raycast(ray, Ray2.Tmax, out result);
+        }
+
+        public bool Raycast(Ray2 ray, float distance, out RaycastResult result)
+        {
+            return broadphase.Raycast(ray, distance, out result);
         }
 
         public void Update(float dt)

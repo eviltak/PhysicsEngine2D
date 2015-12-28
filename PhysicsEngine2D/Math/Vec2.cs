@@ -14,7 +14,7 @@ namespace PhysicsEngine2D
 
         public Vec2(float value) : this(value, value) { }
 
-        public float Length
+        public float Magnitude
         {
             get
             {
@@ -22,7 +22,7 @@ namespace PhysicsEngine2D
             }
         }
 
-        public float LengthSquared
+        public float SqrMagnitude
         {
             get
             {
@@ -34,14 +34,14 @@ namespace PhysicsEngine2D
         {
             get
             {
-                float invMag = 1 / Length;
+                float invMag = 1 / Magnitude;
                 return this * invMag;
             }
         }
 
         public void Normalize()
         {
-            float invMag = 1 / Length;
+            float invMag = 1 / Magnitude;
             this.x *= invMag;
             y *= invMag;
         }
@@ -156,12 +156,12 @@ namespace PhysicsEngine2D
 
         public static float DistanceSquared(Vec2 a, Vec2 b)
         {
-            return (a - b).LengthSquared;
+            return (a - b).SqrMagnitude;
         }
 
         public static float Distance(Vec2 a, Vec2 b)
         {
-            return (a - b).Length;
+            return (a - b).Magnitude;
         }
 
         public static Vec2 Min(Vec2 a, Vec2 b)

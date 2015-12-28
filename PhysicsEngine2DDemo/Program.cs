@@ -17,7 +17,7 @@ namespace PhysicsEngine2DDemo
         [STAThread]
         private static void Main()
         {
-            Game1 game = new Game1();
+            DemoGame game = new DemoGame();
             game.Run();
         }
     }

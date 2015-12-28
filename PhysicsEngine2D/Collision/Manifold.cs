@@ -158,7 +158,7 @@ namespace PhysicsEngine2D
 
                 Vec2 tangent = Vec2.Cross(normal, 1);
 
-                if (tangent.LengthSquared > 0)
+                if (tangent.SqrMagnitude > 0)
                     tangent.Normalize();
 
                 //Solve for magnitude to apply along the friction vector

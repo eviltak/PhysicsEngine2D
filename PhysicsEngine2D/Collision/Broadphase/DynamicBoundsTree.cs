@@ -169,6 +169,45 @@ namespace PhysicsEngine2D
             }
         }
 
+        public override bool Raycast(Ray2 ray, float distance, out RaycastResult result)
+        {
+            result = new RaycastResult();
+            float tmin = Ray2.Tmax;
+
+            Queue<Node> q = new Queue<Node>();
+
+            if (root != null)
+                q.Enqueue(root);
+
+            while (q.Count > 0)
+            {
+                Node node = q.Dequeue();
+
+                if (node.bounds.Raycast(ray, distance))
+                {
+                    if (node.IsLeaf)
+                    {
+                        RaycastResult tempResult;
+                        if (node.body.shape.Raycast(ray, distance, out tempResult))
+                        {
+                            if (tempResult.distance < tmin)
+                            {
+                                result = tempResult;
+                                tmin = tempResult.distance;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        q.Enqueue(node.child0);
+                        q.Enqueue(node.child1);
+                    }
+                }
+            }
+
+            return tmin < Ray2.Tmax;
+        }
+
         internal override void ComputePairs(List<Body> bodies, HashSet<Manifold> manifolds)
         {
             this.manifolds = manifolds;
@@ -181,6 +220,11 @@ namespace PhysicsEngine2D
             }
 
             manifolds.RemoveWhere(m => !pairs.Contains(m));
+        }
+
+        public override void Clear()
+        {
+            root = null;
         }
 
         private HashSet<Manifold> manifolds;

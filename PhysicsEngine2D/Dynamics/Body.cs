@@ -45,9 +45,8 @@ namespace PhysicsEngine2D
             this.friction = friction;
 
             this.gravityScale = gravityScale;
-
+            
             shape.ComputeMass(1);
-            shape.SetOrientation(rotation);
 
             bounds = shape.GetBoundingBox();
         }

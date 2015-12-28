@@ -34,10 +34,10 @@ namespace PhysicsEngine2D
         }
 
 
-        //Overlapping bodies
+        // Overlapping bodies
         private HashSet<Manifold> overlaps;
 
-        //Coherent method with Insertion Sort
+        // Coherent method with Insertion Sort
         private void ProcessAxis(List<AxisPoint> axis)
         {
             for (int j = 1; j < axis.Count; j++)
@@ -51,17 +51,16 @@ namespace PhysicsEngine2D
                 {
                     AxisPoint greater = axis[i];
 
-                    //Make sure we are comparing minimum and maximum points
+                    // Make sure we are comparing minimum and maximum points
                     if (currentPoint.isMin && !greater.isMin)
                     {
-                        //Check bounds and add if possible collision
+                        // Check bounds and add if possible collision
                         if (CheckBounds(greater.body, currentPoint.body))
                         {
                             Manifold possible = new Manifold(greater.body, currentPoint.body);
 
-                            //If we already have reported these two objects colliding,
-                            //keep them in memory so that impulses can be balanced
-                            //if (!overlaps.Contains(possible))
+                            // If we already have reported these two objects colliding,
+                            // keep them in memory so that impulses can be balanced
                             overlaps.Add(possible);
                         }
                     }
@@ -84,17 +83,28 @@ namespace PhysicsEngine2D
             return a.bounds.Overlaps(b.bounds);
         }
 
-        //Check both X and Y axes
         public override void Update(List<Body> bodies)
         {
             
         }
 
+        public override bool Raycast(Ray2 ray, float distance, out RaycastResult result)
+        {
+            result = new RaycastResult();
+            return false;
+        }
+
+        //Check both X and Y axes
         internal override void ComputePairs(List<Body> bodies, HashSet<Manifold> manifolds)
         {
             overlaps = manifolds;
             ProcessAxis(GenerateSweepPoints(bodies, 0));
             ProcessAxis(GenerateSweepPoints(bodies, 1));
+        }
+
+        public override void Clear()
+        {
+            
         }
 
         //Generate min and max points on axis for each body

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Specialized;
 
 namespace PhysicsEngine2D
 {
@@ -39,6 +38,11 @@ namespace PhysicsEngine2D
         public static Vec2 Lerp(Vec2 a, Vec2 b, float t)
         {
             return a + (b - a) * t;
+        }
+
+        public static int Mod(int x, int m)
+        {
+            return (x % m + m) % m;
         }
     }
 }

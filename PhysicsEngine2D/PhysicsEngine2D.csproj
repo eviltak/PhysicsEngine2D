@@ -45,7 +45,7 @@
   <ItemGroup>
     <Compile Include="Collision\Broadphase\DynamicBoundsTree.cs" />
     <Compile Include="Collision\Broadphase\Broadphase.cs" />
-    <Compile Include="Dynamics\RaycastSolver.cs" />
+    <Compile Include="Dynamics\RaycastResult.cs" />
     <Compile Include="Dynamics\Transform.cs" />
     <Compile Include="Math\Matrix2.cs" />
     <Compile Include="Dynamics\Body.cs" />
