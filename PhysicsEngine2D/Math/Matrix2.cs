@@ -4,6 +4,8 @@ namespace PhysicsEngine2D
 {
     public struct Matrix2
     {
+        public static Matrix2 Identity => new Matrix2(0);
+
         public float m00, m01;
         public float m10, m11;
 

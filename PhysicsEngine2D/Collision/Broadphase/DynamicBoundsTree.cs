@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PhysicsEngine2D
 {
-    public class DynamicBoundsTree : Broadphase
+    internal class DynamicBoundsTree : IBroadphase
     {
         private const float Margin = 0.2f;
 
@@ -96,14 +97,14 @@ namespace PhysicsEngine2D
         public int count;
         private HashSet<Manifold> pairs = new HashSet<Manifold>();
 
-        public override void Add(Body body)
+        void IBroadphase.Add(Body body)
         {
             if (root != null)
             {
                 // not first node, insert node to tree
                 Node node = new Node(body);
-                //InsertNodeRecursive(ref root, node);
-                InsertNodeIterative(node);
+
+                InsertNode(node);
             }
             else
             {
@@ -112,7 +113,7 @@ namespace PhysicsEngine2D
             }
         }
 
-        private void InsertNodeIterative(Node node)
+        private void InsertNode(Node node)
         {
             if (root == null)
             {
@@ -155,7 +156,8 @@ namespace PhysicsEngine2D
                 startNode = startNode.parent;
             }
         }
-        public override void Remove(Body body)
+
+        void IBroadphase.Remove(Body body)
         {
             if (root == null) return;
             if (root.IsLeaf)
@@ -165,11 +167,11 @@ namespace PhysicsEngine2D
             }
             else
             {
-                RemoveNodeIterative((Node)body.data);
+                RemoveNode((Node)body.data);
             }
         }
 
-        public override bool Raycast(Ray2 ray, float distance, out RaycastResult result)
+        bool IBroadphase.Raycast(Ray2 ray, float distance, out RaycastResult result)
         {
             result = new RaycastResult();
             float tmin = Ray2.Tmax;
@@ -208,7 +210,7 @@ namespace PhysicsEngine2D
             return tmin < Ray2.Tmax;
         }
 
-        internal override void ComputePairs(List<Body> bodies, HashSet<Manifold> manifolds)
+        void IBroadphase.ComputePairs(List<Body> bodies, HashSet<Manifold> manifolds)
         {
             this.manifolds = manifolds;
             pairs.Clear();
@@ -222,7 +224,7 @@ namespace PhysicsEngine2D
             manifolds.RemoveWhere(m => !pairs.Contains(m));
         }
 
-        public override void Clear()
+        void IBroadphase.Clear()
         {
             root = null;
         }
@@ -267,7 +269,7 @@ namespace PhysicsEngine2D
             }
         }
 
-        private void RemoveNodeIterative(Node node)
+        private void RemoveNode(Node node)
         {
             count--;
 
@@ -301,7 +303,7 @@ namespace PhysicsEngine2D
             }
         }
 
-        public override void Update(List<Body> bodies)
+        void IBroadphase.Update(List<Body> bodies)
         {
             if (root == null)
                 return;
@@ -313,7 +315,7 @@ namespace PhysicsEngine2D
             else
             {
                 List<Node> invalidNodes = new List<Node>();
-                //IsNodeInvalid(root, invalidNodes);
+
                 for (int i = 0; i < bodies.Count; i++)
                 {
                     Body body = bodies[i];
@@ -325,29 +327,42 @@ namespace PhysicsEngine2D
                 for (int i = 0; i < invalidNodes.Count; i++)
                 {
                     Node node = invalidNodes[i];
-                    RemoveNodeIterative(node);
+                    RemoveNode(node);
 
                     node.UpdateBounds();
-                    //InsertNodeRecursive(ref root, node);
-                    InsertNodeIterative(node);
+
+                    InsertNode(node);
                 }
             }
         }
 
-        private void IsNodeInvalid(Node node, List<Node> invalidNodes)
+        void IBroadphase.DebugDraw(IDebugDrawer debugDrawer)
         {
+            Queue<Tuple<Node, int>> q = new Queue<Tuple<Node, int>>();
 
-            if (node.IsLeaf)
+            if (root != null)
+                q.Enqueue(new Tuple<Node, int>(root, 1));
+
+            while (q.Count > 0)
             {
-                // check if fat AABB doesn't 
-                // contain the collider's AABB anymore
-                if (!node.bounds.Contains(node.body.bounds))
-                    invalidNodes.Add(node);
-            }
-            else
-            {
-                IsNodeInvalid(node.child0, invalidNodes);
-                IsNodeInvalid(node.child1, invalidNodes);
+                var param = q.Dequeue();
+                Node node = param.Item1;
+                int depth = param.Item2;
+
+                Vec2[] verts = new Vec2[] {
+                        node.bounds.min,
+                        new Vec2(node.bounds.max.x, node.bounds.min.y),
+                        node.bounds.max,
+                        new Vec2(node.bounds.min.x, node.bounds.max.y)
+                };
+
+                debugDrawer.Draw(verts, (object)depth);
+
+                if (!node.IsLeaf)
+                {
+                    q.Enqueue(new Tuple<Node, int>(node.child0, depth + 1));
+                    q.Enqueue(new Tuple<Node, int>(node.child1, depth + 1));
+                }
             }
         }
     }

@@ -5,7 +5,7 @@
         public Vec2 position;
         public float rotation;
 
-        public Matrix2 localToWorldRotation;
+        public Matrix2 localToWorldRotation = Matrix2.Identity;
 
         // ReSharper disable once InconsistentNaming
         public Matrix2 worldToLocalRotation

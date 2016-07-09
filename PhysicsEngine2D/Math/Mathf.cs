@@ -4,7 +4,7 @@ namespace PhysicsEngine2D
 {
     public static class Mathf
     {
-        public static float Epsilon = 1e-10f;
+		public const float Epsilon = 1e-10f;
         public const float Pi = 3.1415926f;
 
         public static bool Approximately(float a, float b)

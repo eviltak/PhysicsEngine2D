@@ -1,15 +1,11 @@
 ﻿using System;
 using PhysicsEngine2D;
 
-using PhysicsEngine2DDemo.Demos;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-using XNAPrimitives2D;
-
-namespace PhysicsEngine2DDemo
+namespace PhysicsEngine2DDemo.Demos
 {
     // / <summary>
     // / This is the main type for your game
@@ -34,7 +30,7 @@ namespace PhysicsEngine2DDemo
             new Demo4()
         };
 
-        private const int DemoCount = 4;
+		private Demo SelectedDemo => demos[selectedDemo];
 
         public DemoGame()
         {
@@ -45,8 +41,8 @@ namespace PhysicsEngine2DDemo
             {
                 PreferMultiSampling = true,
 
-                PreferredBackBufferWidth = 1024,
-                PreferredBackBufferHeight = 768
+                PreferredBackBufferWidth = 1200,
+                PreferredBackBufferHeight = 675
             };
 
             width *= graphics.PreferredBackBufferWidth / 800f;
@@ -66,7 +62,7 @@ namespace PhysicsEngine2DDemo
             height = width / GraphicsDevice.Viewport.AspectRatio;
             Primitives2D.Initialize(GraphicsDevice, height);
 
-            demos[selectedDemo].Initialize(width, height);
+            SelectedDemo.Initialize(width, height);
     
             lastMouseState = Mouse.GetState();
             lastKeyState = Keyboard.GetState();
@@ -113,7 +109,7 @@ namespace PhysicsEngine2DDemo
 
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
+            if (/*GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||*/
                 Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
@@ -129,15 +125,15 @@ namespace PhysicsEngine2DDemo
                 PhysicsWorld.bruteForce = !PhysicsWorld.bruteForce;
 
             if (currentKeyState.IsKeyUp(Keys.Right) && lastKeyState.IsKeyDown(Keys.Right))
-            {
-                selectedDemo = (selectedDemo + 1) % DemoCount;
-                demos[selectedDemo].Initialize(width, height);
-            }
+			{
+				selectedDemo = (selectedDemo + 1) % demos.Length;
+				SelectedDemo.Initialize(width, height);
+			}
 
-            if (currentKeyState.IsKeyUp(Keys.Left) && lastKeyState.IsKeyDown(Keys.Left))
+			if (currentKeyState.IsKeyUp(Keys.Left) && lastKeyState.IsKeyDown(Keys.Left))
             {
-                selectedDemo = Mathf.Mod(selectedDemo - 1, DemoCount);
-                demos[selectedDemo].Initialize(width, height);
+				selectedDemo = Mathf.Mod(selectedDemo - 1, demos.Length);
+                SelectedDemo.Initialize(width, height);
             }
 
             Vec2 mouse = new Vec2(
@@ -145,15 +141,13 @@ namespace PhysicsEngine2DDemo
                 (1 - (float)currentMouseState.Y / GraphicsDevice.Viewport.Height) * height - height * 0.5f);
 
 
-            demos[selectedDemo].Update(mouse, lastMouseState.LeftButton == ButtonState.Released
+            SelectedDemo.Update(mouse, lastMouseState.LeftButton == ButtonState.Released
                 && currentMouseState.LeftButton == ButtonState.Pressed, 
                 lastMouseState.RightButton == ButtonState.Released
                 && currentMouseState.RightButton == ButtonState.Pressed, dt);
 
             base.Update(gameTime);
         }
-
-        private float direction = Mathf.Pi;
 
         // / <summary>
         // / This is called when the game should draw itself.
@@ -172,12 +166,12 @@ namespace PhysicsEngine2DDemo
             spriteBatch.DrawString(font, "(B)rute force collisions: " + 
                 (PhysicsWorld.bruteForce ? "Yes" : "No"), new Vector2(10, 35), Color.White);
 
-            spriteBatch.DrawString(font, $"Demo {selectedDemo + 1} of {DemoCount}: " + 
-                $"{demos[selectedDemo].description}", new Vector2(10, 60), Color.White);
+			spriteBatch.DrawString(font, $"Demo {selectedDemo + 1} of {demos.Length}: " + 
+                $"{SelectedDemo.description}", new Vector2(10, 60), Color.White);
 
             spriteBatch.End();
 
-            demos[selectedDemo].Draw(spriteBatch, font, dt);
+            SelectedDemo.Draw(spriteBatch, font, dt);
 
             base.Draw(gameTime);
         }

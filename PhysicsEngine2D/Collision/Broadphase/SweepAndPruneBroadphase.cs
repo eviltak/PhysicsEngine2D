@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PhysicsEngine2D
 {
     //Broad Phasing code using Sweep and Prune (SAP)
     //TODO: Add grid based SAP
-    public class SweepAndPruneBroadphase : Broadphase
+    public class SweepAndPruneBroadphase : IBroadphase
     {
         private class AxisPoint
         {
@@ -83,28 +84,28 @@ namespace PhysicsEngine2D
             return a.bounds.Overlaps(b.bounds);
         }
 
-        public override void Update(List<Body> bodies)
+        void IBroadphase.Update(List<Body> bodies)
         {
-            
+
         }
 
-        public override bool Raycast(Ray2 ray, float distance, out RaycastResult result)
+        bool IBroadphase.Raycast(Ray2 ray, float distance, out RaycastResult result)
         {
             result = new RaycastResult();
             return false;
         }
 
         //Check both X and Y axes
-        internal override void ComputePairs(List<Body> bodies, HashSet<Manifold> manifolds)
+        void IBroadphase.ComputePairs(List<Body> bodies, HashSet<Manifold> manifolds)
         {
             overlaps = manifolds;
             ProcessAxis(GenerateSweepPoints(bodies, 0));
             ProcessAxis(GenerateSweepPoints(bodies, 1));
         }
 
-        public override void Clear()
+        void IBroadphase.Clear()
         {
-            
+
         }
 
         //Generate min and max points on axis for each body
@@ -121,11 +122,15 @@ namespace PhysicsEngine2D
             return points;
         }
 
-        public override void Add(Body body)
+        void IBroadphase.Add(Body body)
         {
         }
 
-        public override void Remove(Body body)
+        void IBroadphase.Remove(Body body)
+        {
+        }
+
+        void IBroadphase.DebugDraw(IDebugDrawer debugDrawer)
         {
         }
     }

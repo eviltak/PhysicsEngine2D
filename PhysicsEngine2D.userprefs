@@ -1,0 +1,42 @@
+﻿<Properties StartupItem="DemoProjects/PhysicsEngine2DDemoMac/PhysicsEngine2DDemoMac.csproj">
+  <MonoDevelop.Ide.Workbench ActiveDocument="PhysicsEngine2D/Collision/Manifold.cs">
+    <Files>
+      <File FileName="DemoProjects/PhysicsEngine2DDemoMac/Main.cs" Line="37" Column="15" />
+      <File FileName="DemoProjects/PhysicsEngine2DDemoMac/Info.plist" />
+      <File FileName="PhysicsEngine2D/Math/Vec2.cs" Line="5" Column="19" />
+      <File FileName="DemoProjects/PhysicsEngine2DDemo.Demos/DemoGame.cs" Line="41" Column="14" />
+      <File FileName="PhysicsEngine2D/Collision/Manifold.cs" Line="81" Column="56" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="PhysicsEngine2D" expanded="True">
+            <Node name="PhysicsEngine2D" expanded="True">
+              <Node name="References" expanded="True" />
+              <Node name="Collision" expanded="True">
+                <Node name="Manifold.cs" selected="True" />
+              </Node>
+              <Node name="Math" expanded="True" />
+              <Node name="Properties" expanded="True" />
+            </Node>
+            <Node name="PhysicsEngine2DDemo.Demos" expanded="True">
+              <Node name="References" expanded="True" />
+              <Node name="Demos" expanded="True" />
+            </Node>
+            <Node name="PhysicsEngine2DDemoMac" expanded="True">
+              <Node name="References" expanded="True" />
+              <Node name="Content" expanded="True" />
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <Breakpoint file="/Users/vikramsinghal/Projects/Csharp/PhysicsEngine2D/DemoProjects/PhysicsEngine2DDemoMac/MainWindow.cs" line="43" column="1" />
+    <Breakpoint file="/Users/vikramsinghal/Projects/Csharp/PhysicsEngine2D/DemoProjects/PhysicsEngine2DDemoMac/MainWindow.cs" line="68" column="1" />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.PhysicsEngine2DDemoMac PreferredExecutionTarget="MonoDevelop.Default" />
+</Properties>

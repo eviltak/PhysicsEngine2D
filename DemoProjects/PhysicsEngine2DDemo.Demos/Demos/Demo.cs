@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PhysicsEngine2D;
-using XNAPrimitives2D;
 
 namespace PhysicsEngine2DDemo.Demos
 {
@@ -23,28 +22,32 @@ namespace PhysicsEngine2DDemo.Demos
 
         protected static void DrawBody(Body body, Color color)
         {
-            if (body.shape is Polygon)
+            DrawShape(body.shape, body.position, color);
+
+            if (body.shape is Circle)
             {
-                Polygon polygon = body.shape as Polygon;
+                Vec2 r = body.transform.LocalToWorldDirection(-Vec2.UnitY * (body.shape as Circle).radius);
+                Primitives2D.DrawLine(body.position.ToVector2(), (body.position + r).ToVector2(), color);
+            }
+        }
+
+        protected static void DrawShape(Shape shape, Vec2 position, Color color)
+        {
+            if (shape is Polygon)
+            {
+                Polygon polygon = shape as Polygon;
                 Vec2[] verts = new Vec2[polygon.VertexCount];
 
                 for (int i = 0; i < polygon.VertexCount; i++)
                     verts[i] = polygon.transform.localToWorldRotation * polygon.vertices[i];
 
-                Primitives2D.DrawPolygon(Vec2ToVector2(body.position), Array.ConvertAll(verts, Vec2ToVector2), color);
+                Primitives2D.DrawPolygon(position.ToVector2(), Array.ConvertAll(verts, v => v.ToVector2()), color);
             }
-            else if (body.shape is Circle)
+            else if (shape is Circle)
             {
-                Circle circle = body.shape as Circle;
-                Primitives2D.DrawCircle(Vec2ToVector2(body.position), circle.radius, color);
-                Vec2 r = body.transform.LocalToWorldDirection(-Vec2.UnitY * circle.radius);
-                Primitives2D.DrawLine(Vec2ToVector2(body.position), Vec2ToVector2(body.position + r), color);
+                Circle circle = shape as Circle;
+                Primitives2D.DrawCircle(position.ToVector2(), circle.radius, color);
             }
-        }
-
-        protected static Vector2 Vec2ToVector2(Vec2 v)
-        {
-            return new Vector2(v.x, v.y);
         }
     }
 }

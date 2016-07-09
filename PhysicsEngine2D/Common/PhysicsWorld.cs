@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net.NetworkInformation;
+using System;
 
 namespace PhysicsEngine2D
 {
@@ -15,7 +16,7 @@ namespace PhysicsEngine2D
 
         internal HashSet<Manifold> manifolds = new HashSet<Manifold>();
 
-        private Broadphase broadphase;
+        private IBroadphase broadphase;
 
         public int ManifoldCount
         {
@@ -120,6 +121,11 @@ namespace PhysicsEngine2D
             //Integrate positions
             foreach (Body b in bodies)
                 b.IntegrateVelocity(dt);
+        }
+
+        public void DebugDraw(IDebugDrawer debugDrawer)
+        {
+            broadphase.DebugDraw(debugDrawer);
         }
     }
 }
